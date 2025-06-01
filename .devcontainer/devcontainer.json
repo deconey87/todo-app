@@ -9,6 +9,7 @@
     "vscode": {
       "extensions": [
         "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
         "saoudrizwan.claude-dev",
         "rooveterinaryinc.roo-cline",
         "shd101wyy.markdown-preview-enhanced"
