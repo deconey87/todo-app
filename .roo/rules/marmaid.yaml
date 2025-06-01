@@ -1,0 +1,16 @@
+mermaid:
+  check-validity: true
+  ids:
+    forbidden-symbols:
+      - spaces
+      - ampersands
+      - special-symbols
+  special-symbols: ()[]{}|/
+  labels:
+    - human-readable # myNode[Readable Label]
+    - pipe-edge-labels # A -->|My label| B
+    - quote-special-symbols # X["Do stuff (Ref T-####)"], A -->|"See {Ref T-####}"| B
+  comments:
+    - full-lines-only
+  class-definitions:
+    - no-spaces-after-commas # Correct: class NodeA,NodeB,NodeC roo;

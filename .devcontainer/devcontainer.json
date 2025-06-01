@@ -1,0 +1,22 @@
+{
+  "name": "ToDo App Development Container",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "app",
+  "workspaceFolder": "/workspaces/todo-app",
+  "forwardPorts": [3000],
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "saoudrizwan.claude-dev",
+        "rooveterinaryinc.roo-cline",
+        "shd101wyy.markdown-preview-enhanced"
+      ],
+      "settings": {
+        // "terminal.integrated.shell.linux": "/bin/bash"
+      }
+    }
+  },
+  "remoteUser": "node"
+}
