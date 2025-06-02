@@ -55,10 +55,21 @@ export class DependencyContainer {
     return this.timeProvider;
   }
 
+  get taskApplicationService(): TaskManagementPort {
+    return this.taskService;
+  }
+
+  get taskListApplicationService(): TaskListManagementPort {
+    return this.taskListService;
+  }
 }
 
 export class DependencyContainerFactory {
   static create(): DependencyContainer {
     return new DependencyContainer();
   }
+}
+
+export function createDependencyContainer(): DependencyContainer {
+  return DependencyContainerFactory.create();
 }
