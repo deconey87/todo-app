@@ -1,6 +1,7 @@
 import { TaskDto } from '../../dto/TaskDto';
 import { CreateTaskDto } from '../../dto/CreateTaskDto';
 import { UpdateTaskDto } from '../../dto/UpdateTaskDto';
+import { TaskStatusLiteral } from '../../../shared/types/TaskStatus';
 
 /**
  * Task管理の入力ポート
@@ -54,7 +55,7 @@ export interface TaskManagementPort {
    * @param status 新しいステータス
    * @returns 更新されたタスク
    */
-  changeTaskStatus(id: string, status: 'TODO' | 'IN_PROGRESS' | 'DONE'): Promise<TaskDto>;
+  changeTaskStatus(id: string, status: TaskStatusLiteral): Promise<TaskDto>;
 
   /**
    * 特定のステータスのタスクを取得する (UC008対応)

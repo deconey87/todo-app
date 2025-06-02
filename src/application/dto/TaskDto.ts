@@ -1,3 +1,5 @@
+import { TaskStatusLiteral } from '../../shared/types/TaskStatus';
+
 /**
  * タスクのデータ転送オブジェクト
  * アプリケーション層とプレゼンテーション層間でのデータ交換に使用
@@ -16,7 +18,7 @@ export interface TaskDto {
   dueDate: string | null;
   
   /** タスクステータス */
-  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  status: TaskStatusLiteral;
   
   /** 所属タスクリストID */
   listId: string;

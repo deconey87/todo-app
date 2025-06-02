@@ -1,3 +1,5 @@
+import { TaskStatusLiteral } from '../../shared/types/TaskStatus';
+
 /**
  * タスク更新用のデータ転送オブジェクト
  * 既存のタスクを更新する際に使用
@@ -13,7 +15,7 @@ export interface UpdateTaskDto {
   dueDate?: string | null;
   
   /** タスクステータス（オプション） */
-  status?: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  status?: TaskStatusLiteral;
   
   /** 所属タスクリストID（オプション、タスクの移動に使用） */
   listId?: string;

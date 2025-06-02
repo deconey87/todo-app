@@ -10,12 +10,14 @@
 - **値オブジェクトパターン**: [`Title`](src/domain/task/Title.vo.ts), [`Description`](src/domain/task/Description.vo.ts), [`DueDate`](src/domain/task/DueDate.vo.ts), [`Status`](src/domain/task/Status.vo.ts), [`ListName`](src/domain/taskList/ListName.vo.ts)
 - **リポジトリパターン**: [`TaskRepository`](src/domain/task/TaskRepository.ts), [`TaskListRepository`](src/domain/taskList/TaskListRepository.ts)
 - **ブランド型パターン**: 型安全性向上（[`types.ts`](src/domain/shared/types.ts)）
+- **統一型管理パターン**: [`TaskStatus.ts`](src/shared/types/TaskStatus.ts)による型定義の一元化
 
 ### アプリケーション層パターン
 - **ポートパターン**: 入力ポート（[`TaskManagementPort`](src/application/ports/input/TaskManagementPort.ts), [`TaskListManagementPort`](src/application/ports/input/TaskListManagementPort.ts)）、出力ポート（[`TaskRepositoryPort`](src/application/ports/output/TaskRepositoryPort.ts), [`TaskListRepositoryPort`](src/application/ports/output/TaskListRepositoryPort.ts), [`TimeProvider`](src/application/ports/output/TimeProvider.ts)）
 - **アプリケーションサービスパターン**: [`TaskApplicationService`](src/application/services/TaskApplicationService.ts), [`TaskListApplicationService`](src/application/services/TaskListApplicationService.ts)
 - **DTOパターン**: [`TaskDto`](src/application/dto/TaskDto.ts), [`TaskListDto`](src/application/dto/TaskListDto.ts), [`CreateTaskDto`](src/application/dto/CreateTaskDto.ts), [`UpdateTaskDto`](src/application/dto/UpdateTaskDto.ts), [`CreateTaskListDto`](src/application/dto/CreateTaskListDto.ts)
 - **マッパーパターン**: [`TaskDtoMapper`](src/application/dto/TaskDtoMapper.ts)
+- **変換処理統一パターン**: `TaskStatusConverter`クラスによる型変換の一元化
 
 ### インフラストラクチャ層パターン
 - **アダプターパターン**: [`InMemoryTaskRepository`](src/infrastructure/adapters/output/persistence/InMemoryTaskRepository.ts), [`InMemoryTaskListRepository`](src/infrastructure/adapters/output/persistence/InMemoryTaskListRepository.ts), [`SystemTimeProvider`](src/infrastructure/adapters/output/time/SystemTimeProvider.ts)
@@ -42,6 +44,8 @@
 ### 型安全性の強化
 - **ブランド型**: [`types.ts`](src/domain/shared/types.ts)による型レベルでの制約表現
 - **値オブジェクト**: ドメイン概念の型安全な表現
+- **統一型定義**: [`TaskStatus.ts`](src/shared/types/TaskStatus.ts)による型の一元管理
+- **変換処理統一**: `TaskStatusConverter`による安全な型変換
 - **静的型チェック**: TypeScriptによるコンパイル時エラー検出
 
 ## アーキテクチャの利点
@@ -57,6 +61,25 @@
 - **ビジネスロジック進化**: ドメイン層の独立性による柔軟な対応
 
 ### 品質指標
-- **テストカバレッジ**: 118個のテストケース（100%通過）
+- **テストカバレッジ**: 143個のテストケース（100%通過）
+- **型安全性**: 統一型定義による大幅向上（87.5%削減）
+- **保守性**: 型定義の一元化による改善
 - **コード品質**: SOLID原則、DRY原則の適用
 - **アーキテクチャ整合性**: DDD原則に準拠した設計
+
+## 新規導入パターン（2025/6/2）
+
+### 統一型管理パターン
+- **目的**: 重複する型定義の一元化と保守性向上
+- **実装**: [`TaskStatus.ts`](src/shared/types/TaskStatus.ts)による統一型定義
+- **効果**: 型定義箇所を8箇所から1箇所に削減（87.5%削減）
+
+### 変換処理統一パターン
+- **目的**: 型変換処理の一元化と安全性確保
+- **実装**: `TaskStatusConverter`クラスによる変換処理統一
+- **効果**: ドメイン層enumと他層の完全統合、変換エラーの防止
+
+### 型安全性保護パターン
+- **目的**: リファクタリング時の既存機能保護
+- **実装**: [`TaskStatus.test.ts`](src/shared/types/TaskStatus.test.ts)による包括的テスト
+- **効果**: 25個の新規テストケースによる変換処理の完全保護

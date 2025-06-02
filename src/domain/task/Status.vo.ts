@@ -1,8 +1,6 @@
-export enum TaskStatusEnum {
-  TODO = '未着手',
-  IN_PROGRESS = '進行中',
-  DONE = '完了',
-}
+import { TaskStatusEnum } from '../../shared/types/TaskStatus';
+
+export { TaskStatusEnum } from '../../shared/types/TaskStatus';
 
 export class Status {
   readonly value: TaskStatusEnum;

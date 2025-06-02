@@ -11,6 +11,7 @@ import { Title } from '../../domain/task/Title.vo';
 import { Description } from '../../domain/task/Description.vo';
 import { DueDate } from '../../domain/task/DueDate.vo';
 import { Status, TaskStatusEnum } from '../../domain/task/Status.vo';
+import { TaskStatusLiteral, TaskStatusConverter } from '../../shared/types/TaskStatus';
 import { TaskId, ListId } from '../../domain/shared/types';
 import {
   TaskNotFoundError,
@@ -183,7 +184,7 @@ export class TaskApplicationService implements TaskManagementPort {
     return tasks.map(task => TaskDtoMapper.toTaskDto(task, this.timeProvider));
   }
 
-  async changeTaskStatus(id: string, status: 'TODO' | 'IN_PROGRESS' | 'DONE'): Promise<TaskDto> {
+  async changeTaskStatus(id: string, status: TaskStatusLiteral): Promise<TaskDto> {
     const task = await this.taskRepository.findById(TaskId.create(id));
     if (!task) {
       throw new TaskNotFoundError(id);
@@ -213,7 +214,16 @@ export class TaskApplicationService implements TaskManagementPort {
   async getTasksByStatus(status: string): Promise<TaskDto[]> {
     try {
       // ステータスの妥当性を確認
-      const statusEnum = this.mapToStatusEnum(status as 'TODO' | 'IN_PROGRESS' | 'DONE');
+      if (!status || typeof status !== 'string') {
+        throw new InvalidTaskStatusError(`Invalid status: ${status}`);
+      }
+      
+      // 有効なステータスかチェック
+      if (status !== 'TODO' && status !== 'IN_PROGRESS' && status !== 'DONE') {
+        throw new InvalidTaskStatusError(`Invalid status: ${status}`);
+      }
+      
+      const statusEnum = this.mapToStatusEnum(status as TaskStatusLiteral);
       
       // 全タスクを取得してフィルタリング
       const allTasks = await this.taskRepository.findAll();
@@ -308,17 +318,8 @@ export class TaskApplicationService implements TaskManagementPort {
   }
 
 
-  private mapToStatusEnum(status: 'TODO' | 'IN_PROGRESS' | 'DONE'): TaskStatusEnum {
-    switch (status) {
-      case 'TODO':
-        return TaskStatusEnum.TODO;
-      case 'IN_PROGRESS':
-        return TaskStatusEnum.IN_PROGRESS;
-      case 'DONE':
-        return TaskStatusEnum.DONE;
-      default:
-        throw new InvalidTaskStatusError(status);
-    }
+  private mapToStatusEnum(status: TaskStatusLiteral): TaskStatusEnum {
+    return TaskStatusConverter.toEnum(status);
   }
 
 }

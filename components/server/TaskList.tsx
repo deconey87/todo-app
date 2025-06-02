@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TaskDto } from '../../src/application/dto/TaskDto';
 import { TaskItem } from './TaskItem';
+import { TaskStatusLiteral, TaskStatusConverter } from '../../src/shared/types/TaskStatus';
 
 interface TaskListProps {
   tasks: TaskDto[];
@@ -11,16 +12,11 @@ interface TaskListProps {
 export function TaskList({ tasks, selectedListId, filter }: TaskListProps) {
   const getTitle = () => {
     if (filter) {
-      switch (filter) {
-        case 'TODO':
-          return '未着手のタスク';
-        case 'IN_PROGRESS':
-          return '進行中のタスク';
-        case 'DONE':
-          return '完了したタスク';
-        default:
-          return 'タスク一覧';
+      if (filter === 'TODO' || filter === 'IN_PROGRESS' || filter === 'DONE') {
+        const label = TaskStatusConverter.getLabel(filter as TaskStatusLiteral);
+        return `${label}のタスク`;
       }
+      return 'タスク一覧';
     }
     return selectedListId ? 'タスク一覧' : 'すべてのタスク';
   };

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { TaskListDto } from '../../src/application/dto/TaskListDto';
+import { TASK_STATUS_VALUES, TaskStatusConverter } from '../../src/shared/types/TaskStatus';
 
 interface TaskListSidebarProps {
   taskLists: TaskListDto[];
@@ -49,21 +50,13 @@ export function TaskListSidebar({ taskLists, selectedListId }: TaskListSidebarPr
               すべてのタスク
             </Button>
           </Link>
-          <Link href="/dashboard?filter=TODO" className="block">
-            <Button variant="ghost" className="w-full justify-start">
-              未着手
-            </Button>
-          </Link>
-          <Link href="/dashboard?filter=IN_PROGRESS" className="block">
-            <Button variant="ghost" className="w-full justify-start">
-              進行中
-            </Button>
-          </Link>
-          <Link href="/dashboard?filter=DONE" className="block">
-            <Button variant="ghost" className="w-full justify-start">
-              完了
-            </Button>
-          </Link>
+          {TASK_STATUS_VALUES.map((status) => (
+            <Link key={status} href={`/dashboard?filter=${status}`} className="block">
+              <Button variant="ghost" className="w-full justify-start">
+                {TaskStatusConverter.getLabel(status)}
+              </Button>
+            </Link>
+          ))}
         </CardContent>
       </Card>
     </aside>

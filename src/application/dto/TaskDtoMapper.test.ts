@@ -7,6 +7,7 @@ import { Description } from '../../domain/task/Description.vo';
 import { DueDate } from '../../domain/task/DueDate.vo';
 import { Status, TaskStatusEnum } from '../../domain/task/Status.vo';
 import { TaskId, ListId } from '../../domain/shared/types';
+import { TaskStatusConverter } from '../../shared/types/TaskStatus';
 
 describe('TaskDtoMapper', () => {
   let mockTimeProvider: TimeProvider;
@@ -114,20 +115,20 @@ describe('TaskDtoMapper', () => {
     });
   });
 
-  describe('mapFromStatusEnum', () => {
+  describe('TaskStatusConverter統合テスト', () => {
     it('TODOステータスを正しく文字列に変換する', () => {
       // Act & Assert
-      expect(TaskDtoMapper.mapFromStatusEnum(TaskStatusEnum.TODO)).toBe('TODO');
+      expect(TaskStatusConverter.toLiteral(TaskStatusEnum.TODO)).toBe('TODO');
     });
 
     it('IN_PROGRESSステータスを正しく文字列に変換する', () => {
       // Act & Assert
-      expect(TaskDtoMapper.mapFromStatusEnum(TaskStatusEnum.IN_PROGRESS)).toBe('IN_PROGRESS');
+      expect(TaskStatusConverter.toLiteral(TaskStatusEnum.IN_PROGRESS)).toBe('IN_PROGRESS');
     });
 
     it('DONEステータスを正しく文字列に変換する', () => {
       // Act & Assert
-      expect(TaskDtoMapper.mapFromStatusEnum(TaskStatusEnum.DONE)).toBe('DONE');
+      expect(TaskStatusConverter.toLiteral(TaskStatusEnum.DONE)).toBe('DONE');
     });
 
     it('無効なステータスでエラーを投げる', () => {
@@ -135,7 +136,7 @@ describe('TaskDtoMapper', () => {
       const invalidStatus = 'INVALID' as unknown as TaskStatusEnum;
 
       // Act & Assert
-      expect(() => TaskDtoMapper.mapFromStatusEnum(invalidStatus)).toThrow();
+      expect(() => TaskStatusConverter.toLiteral(invalidStatus)).toThrow();
     });
   });
 });

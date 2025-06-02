@@ -1,3 +1,5 @@
+import { TaskStatusLiteral } from '../../shared/types/TaskStatus';
+
 /**
  * タスク作成用のデータ転送オブジェクト
  * 新しいタスクを作成する際に使用
@@ -13,7 +15,7 @@ export interface CreateTaskDto {
   dueDate?: string;
   
   /** タスクステータス（オプション、デフォルトはTODO） */
-  status?: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  status?: TaskStatusLiteral;
   
   /** 所属タスクリストID（必須） */
   listId: string;
