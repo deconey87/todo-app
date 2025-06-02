@@ -4,13 +4,11 @@ import { TaskRepositoryPort } from '../ports/output/TaskRepositoryPort';
 import { CreateTaskListDto } from '../dto/CreateTaskListDto';
 import { TaskListDto } from '../dto/TaskListDto';
 import { TaskDto } from '../dto/TaskDto';
+import { TaskDtoMapper } from '../dto/TaskDtoMapper';
 import { TaskList } from '../../domain/taskList/TaskList';
-import { Task } from '../../domain/task/Task';
 import { ListName } from '../../domain/taskList/ListName.vo';
 import { ListId } from '../../domain/shared/types';
-import { TaskStatusEnum } from '../../domain/task/Status.vo';
 import { TaskListNotFoundError, ValidationError, DuplicateTaskListNameError } from '../errors/ApplicationError';
-import { v4 as uuidv4 } from 'uuid';
 
 export class TaskListApplicationService implements TaskListManagementPort {
   constructor(
@@ -35,7 +33,7 @@ export class TaskListApplicationService implements TaskListManagementPort {
       }
 
       // エンティティの作成
-      const listId: ListId = uuidv4();
+      const listId: ListId = await this.taskListRepository.nextId();
       const taskList = new TaskList(listId, listName);
 
       // 永続化
@@ -91,7 +89,7 @@ export class TaskListApplicationService implements TaskListManagementPort {
       const tasks = await this.taskRepository.findByListId(listId);
       
       // DTOに変換して返却
-      return tasks.map(task => this.taskToDto(task));
+      return tasks.map(task => TaskDtoMapper.toTaskDto(task));
     } catch (error) {
       if (error instanceof ValidationError ||
           error instanceof TaskListNotFoundError) {
@@ -177,31 +175,6 @@ export class TaskListApplicationService implements TaskListManagementPort {
     }
   }
 
-  private taskToDto(task: Task): TaskDto {
-    return {
-      id: task.id,
-      title: task.title.value,
-      description: task.description.value,
-      dueDate: task.dueDate ? task.dueDate.value.toISOString() : null,
-      status: this.mapFromStatusEnum(task.status.value),
-      listId: task.listId,
-      createdAt: new Date().toISOString(), // 簡易実装：現在時刻を使用
-      updatedAt: new Date().toISOString()  // 簡易実装：現在時刻を使用
-    };
-  }
-
-  private mapFromStatusEnum(status: TaskStatusEnum): 'TODO' | 'IN_PROGRESS' | 'DONE' {
-    switch (status) {
-      case TaskStatusEnum.TODO:
-        return 'TODO';
-      case TaskStatusEnum.IN_PROGRESS:
-        return 'IN_PROGRESS';
-      case TaskStatusEnum.DONE:
-        return 'DONE';
-      default:
-        return 'TODO';
-    }
-  }
 
   private toDto(taskList: TaskList): TaskListDto {
     return {

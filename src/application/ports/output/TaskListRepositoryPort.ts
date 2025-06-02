@@ -8,4 +8,5 @@ export interface TaskListRepositoryPort {
   save(taskList: TaskList): Promise<void>;
   delete(listId: ListId): Promise<void>;
   findByName(name: ListName): Promise<TaskList | null>;
+  nextId(): Promise<ListId>;
 }

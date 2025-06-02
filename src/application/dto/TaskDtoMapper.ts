@@ -1,0 +1,46 @@
+import { Task } from '../../domain/task/Task';
+import { TaskDto } from './TaskDto';
+import { TaskStatusEnum } from '../../domain/task/Status.vo';
+import { InvalidTaskStatusError } from '../errors/ApplicationError';
+
+/**
+ * TaskエンティティとTaskDTO間のマッピングを担当するクラス
+ * DRY原則に従い、重複するマッピングロジックを一元化
+ */
+export class TaskDtoMapper {
+  /**
+   * TaskエンティティをTaskDTOに変換
+   * @param task Taskエンティティ
+   * @returns TaskDTO
+   */
+  static toTaskDto(task: Task): TaskDto {
+    return {
+      id: task.id,
+      title: task.title.value,
+      description: task.description.value,
+      dueDate: task.dueDate ? task.dueDate.value.toISOString() : null,
+      status: this.mapFromStatusEnum(task.status.value),
+      listId: task.listId,
+      createdAt: new Date().toISOString(), // 簡易実装：現在時刻を使用
+      updatedAt: new Date().toISOString()  // 簡易実装：現在時刻を使用
+    };
+  }
+
+  /**
+   * TaskStatusEnumを文字列ステータスに変換
+   * @param status TaskStatusEnum
+   * @returns ステータス文字列
+   */
+  static mapFromStatusEnum(status: TaskStatusEnum): 'TODO' | 'IN_PROGRESS' | 'DONE' {
+    switch (status) {
+      case TaskStatusEnum.TODO:
+        return 'TODO';
+      case TaskStatusEnum.IN_PROGRESS:
+        return 'IN_PROGRESS';
+      case TaskStatusEnum.DONE:
+        return 'DONE';
+      default:
+        throw new InvalidTaskStatusError(status);
+    }
+  }
+}

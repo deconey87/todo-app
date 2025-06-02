@@ -53,16 +53,32 @@
 - ✅ `getTasksByListId(listId: string)` - 特定リスト内のタスク取得
 
 ### テスト
-- ✅ 単体テスト（103/103テストケース通過）
+- ✅ 単体テスト（116/116テストケース通過）
 - ✅ 新機能のテストケース追加
 - ✅ 動作確認完了
+- ✅ DDD改善後のテスト（2024/6/2）
+- ✅ リファクタリング後のテスト（2024/6/2）
+
+### DDD改善（2024/6/2）
+- ✅ TaskList集約の境界違反修正
+- ✅ TaskListからTask関連メソッド削除（addTask, removeTask, getTaskById, tasks getter）
+- ✅ 集約間の参照をIDベースに変更
+- ✅ テストケースの適切な修正（7個のTask関連テストを削除）
+
+### 重複コード共通化リファクタリング（2024/6/2）
+- ✅ TaskDtoMapperクラス作成（src/application/dto/TaskDtoMapper.ts）
+- ✅ TaskApplicationServiceの重複メソッド削除（toDto, mapFromStatusEnum）
+- ✅ TaskListApplicationServiceの重複メソッド削除（taskToDto, mapFromStatusEnum）
+- ✅ DRY原則の適用（Don't Repeat Yourself）
+- ✅ 単一責任原則の適用（DTOマッピングの責務分離）
+- ✅ TaskDtoMapperのテストケース追加（7個のテスト）
+- ✅ 既存テストの継続通過確認（116/116テスト成功）
 
 ## 現在の状況
-全16のユースケースのうち15が実装完了（UC014, UC015は未実装）。ポート&アダプターアーキテクチャによる堅牢な設計で、タスク管理の主要機能が動作する状態。
+全16のユースケースが実装完了（UC014, UC015も実装済み）。DDD原則に従った適切な集約境界を持つポート&アダプターアーキテクチャによる堅牢な設計で、タスク管理の全機能が動作する状態。重複コードの共通化リファクタリングも完了し、保守性とテスタビリティが向上。
 
 ## 次の候補
-- UC014: タスクリストの名前を変更する
-- UC015: タスクリストを削除する（関連タスクも削除）
 - PostgreSQL統合
 - フロントエンドUI改善
 - API Routesの拡張
+- プロダクション環境への展開準備

@@ -2,6 +2,7 @@ import { TaskListRepositoryPort } from '../../../../application/ports/output/Tas
 import { TaskList } from '../../../../domain/taskList/TaskList';
 import { ListId } from '../../../../domain/shared/types';
 import { ListName } from '../../../../domain/taskList/ListName.vo';
+import { v4 as uuidv4 } from 'uuid';
 
 export class InMemoryTaskListRepository implements TaskListRepositoryPort {
   private taskLists: Map<ListId, TaskList> = new Map();
@@ -30,6 +31,10 @@ export class InMemoryTaskListRepository implements TaskListRepositoryPort {
       }
     }
     return null;
+  }
+
+  async nextId(): Promise<ListId> {
+    return uuidv4();
   }
 
   // テスト用のヘルパーメソッド

@@ -4,17 +4,18 @@ import { TaskListRepositoryPort } from '../ports/output/TaskListRepositoryPort';
 import { CreateTaskDto } from '../dto/CreateTaskDto';
 import { UpdateTaskDto } from '../dto/UpdateTaskDto';
 import { TaskDto } from '../dto/TaskDto';
+import { TaskDtoMapper } from '../dto/TaskDtoMapper';
 import { Task } from '../../domain/task/Task';
 import { Title } from '../../domain/task/Title.vo';
 import { Description } from '../../domain/task/Description.vo';
 import { DueDate } from '../../domain/task/DueDate.vo';
 import { Status, TaskStatusEnum } from '../../domain/task/Status.vo';
 import { TaskId } from '../../domain/shared/types';
-import { 
-  TaskNotFoundError, 
-  TaskListNotFoundError, 
-  ValidationError, 
-  InvalidTaskStatusError 
+import {
+  TaskNotFoundError,
+  TaskListNotFoundError,
+  ValidationError,
+  InvalidTaskStatusError
 } from '../errors/ApplicationError';
 
 export class TaskApplicationService implements TaskManagementPort {
@@ -24,39 +25,15 @@ export class TaskApplicationService implements TaskManagementPort {
   ) {}
 
   async createTask(dto: CreateTaskDto): Promise<TaskDto> {
-    // バリデーション
-    if (!dto.title || dto.title.trim() === '') {
-      throw new ValidationError('Task title is required');
-    }
-    if (!dto.listId || dto.listId.trim() === '') {
-      throw new ValidationError('Task list ID is required');
-    }
-
     try {
-      // タスクリストの存在確認
-      const taskList = await this.taskListRepository.findById(dto.listId);
-      if (!taskList) {
-        throw new TaskListNotFoundError(dto.listId);
-      }
-
-      // 値オブジェクトの作成
-      const title = new Title(dto.title.trim());
-      const description = new Description(dto.description?.trim() || '');
-      const dueDate = dto.dueDate ? new DueDate(new Date(dto.dueDate)) : null;
-      const status = dto.status ? this.mapToStatusEnum(dto.status) : TaskStatusEnum.TODO;
-      const taskStatus = new Status(status);
-
-      // エンティティの作成
-      const taskId: TaskId = await this.taskRepository.nextId();
-      const task = new Task(taskId, title, description, dueDate, taskStatus, dto.listId);
-
-      // 永続化
+      this.validateCreateTaskDto(dto);
+      await this.ensureTaskListExists(dto.listId);
+      const task = await this.buildTaskFromDto(dto);
+      
       await this.taskRepository.save(task);
-
-      // DTOに変換して返却
-      return this.toDto(task);
+      return TaskDtoMapper.toTaskDto(task);
     } catch (error) {
-      if (error instanceof ValidationError || 
+      if (error instanceof ValidationError ||
           error instanceof TaskListNotFoundError ||
           error instanceof InvalidTaskStatusError) {
         throw error;
@@ -69,50 +46,53 @@ export class TaskApplicationService implements TaskManagementPort {
     }
   }
 
-  async updateTask(id: string, dto: UpdateTaskDto): Promise<TaskDto> {
-    const task = await this.taskRepository.findById(id);
-    if (!task) {
-      throw new TaskNotFoundError(id);
+  /**
+   * CreateTaskDtoのバリデーションを実行
+   */
+  private validateCreateTaskDto(dto: CreateTaskDto): void {
+    if (!dto.title || dto.title.trim() === '') {
+      throw new ValidationError('Task title is required');
     }
+    if (!dto.listId || dto.listId.trim() === '') {
+      throw new ValidationError('Task list ID is required');
+    }
+  }
+
+  /**
+   * タスクリストの存在確認
+   */
+  private async ensureTaskListExists(listId: string): Promise<void> {
+    const taskList = await this.taskListRepository.findById(listId);
+    if (!taskList) {
+      throw new TaskListNotFoundError(listId);
+    }
+  }
+
+  /**
+   * DTOからTaskエンティティを構築
+   */
+  private async buildTaskFromDto(dto: CreateTaskDto): Promise<Task> {
+    const title = new Title(dto.title.trim());
+    const description = new Description(dto.description?.trim() || '');
+    const dueDate = dto.dueDate ? new DueDate(new Date(dto.dueDate)) : null;
+    const status = dto.status ? this.mapToStatusEnum(dto.status) : TaskStatusEnum.TODO;
+    const taskStatus = new Status(status);
+
+    const taskId: TaskId = await this.taskRepository.nextId();
+    return new Task(taskId, title, description, dueDate, taskStatus, dto.listId);
+  }
+
+  async updateTask(id: string, dto: UpdateTaskDto): Promise<TaskDto> {
+    const task = await this.findExistingTask(id);
 
     try {
-      // タスクリストの変更がある場合は存在確認
-      if (dto.listId && dto.listId !== task.listId) {
-        const taskList = await this.taskListRepository.findById(dto.listId);
-        if (!taskList) {
-          throw new TaskListNotFoundError(dto.listId);
-        }
-      }
-
-      // 各フィールドの更新
-      if (dto.title !== undefined) {
-        if (!dto.title.trim()) {
-          throw new ValidationError('Task title cannot be empty');
-        }
-        task.changeTitle(new Title(dto.title.trim()));
-      }
-
-      if (dto.description !== undefined) {
-        task.changeDescription(new Description(dto.description.trim()));
-      }
-
-      if (dto.dueDate !== undefined) {
-        const dueDate = dto.dueDate ? new DueDate(new Date(dto.dueDate)) : null;
-        task.changeDueDate(dueDate);
-      }
-
-      if (dto.status !== undefined) {
-        const statusEnum = this.mapToStatusEnum(dto.status);
-        task.changeStatus(new Status(statusEnum));
-      }
-
-      // 永続化
+      this.validateUpdateTaskDto(dto);
+      await this.updateTaskProperties(task, dto);
+      
       await this.taskRepository.save(task);
-
-      // DTOに変換して返却
-      return this.toDto(task);
+      return TaskDtoMapper.toTaskDto(task);
     } catch (error) {
-      if (error instanceof ValidationError || 
+      if (error instanceof ValidationError ||
           error instanceof TaskListNotFoundError ||
           error instanceof InvalidTaskStatusError) {
         throw error;
@@ -122,6 +102,59 @@ export class TaskApplicationService implements TaskManagementPort {
         throw new ValidationError(error.message);
       }
       throw new ValidationError('Failed to update task');
+    }
+  }
+
+  /**
+   * UpdateTaskDtoのバリデーションを実行
+   */
+  private validateUpdateTaskDto(dto: UpdateTaskDto): void {
+    if (dto.title !== undefined && !dto.title.trim()) {
+      throw new ValidationError('Task title cannot be empty');
+    }
+  }
+
+  /**
+   * 既存タスクを取得
+   */
+  private async findExistingTask(taskId: string): Promise<Task> {
+    const task = await this.taskRepository.findById(taskId);
+    if (!task) {
+      throw new TaskNotFoundError(taskId);
+    }
+    return task;
+  }
+
+  /**
+   * タスクプロパティの更新
+   */
+  private async updateTaskProperties(task: Task, dto: UpdateTaskDto): Promise<void> {
+    // タスクリストの変更がある場合は存在確認
+    if (dto.listId && dto.listId !== task.listId) {
+      const taskList = await this.taskListRepository.findById(dto.listId);
+      if (!taskList) {
+        throw new TaskListNotFoundError(dto.listId);
+      }
+      task.moveToList(dto.listId);
+    }
+
+    // 各フィールドの更新
+    if (dto.title !== undefined) {
+      task.changeTitle(new Title(dto.title.trim()));
+    }
+
+    if (dto.description !== undefined) {
+      task.changeDescription(new Description(dto.description.trim()));
+    }
+
+    if (dto.dueDate !== undefined) {
+      const dueDate = dto.dueDate ? new DueDate(new Date(dto.dueDate)) : null;
+      task.changeDueDate(dueDate);
+    }
+
+    if (dto.status !== undefined) {
+      const statusEnum = this.mapToStatusEnum(dto.status);
+      task.changeStatus(new Status(statusEnum));
     }
   }
 
@@ -135,17 +168,17 @@ export class TaskApplicationService implements TaskManagementPort {
 
   async getTask(id: string): Promise<TaskDto | null> {
     const task = await this.taskRepository.findById(id);
-    return task ? this.toDto(task) : null;
+    return task ? TaskDtoMapper.toTaskDto(task) : null;
   }
 
   async getTasksByListId(listId: string): Promise<TaskDto[]> {
     const tasks = await this.taskRepository.findByListId(listId);
-    return tasks.map(task => this.toDto(task));
+    return tasks.map(task => TaskDtoMapper.toTaskDto(task));
   }
 
   async getAllTasks(): Promise<TaskDto[]> {
     const tasks = await this.taskRepository.findAll();
-    return tasks.map(task => this.toDto(task));
+    return tasks.map(task => TaskDtoMapper.toTaskDto(task));
   }
 
   async changeTaskStatus(id: string, status: 'TODO' | 'IN_PROGRESS' | 'DONE'): Promise<TaskDto> {
@@ -162,7 +195,7 @@ export class TaskApplicationService implements TaskManagementPort {
       await this.taskRepository.save(task);
 
       // DTOに変換して返却
-      return this.toDto(task);
+      return TaskDtoMapper.toTaskDto(task);
     } catch (error) {
       if (error instanceof InvalidTaskStatusError) {
         throw error;
@@ -184,7 +217,7 @@ export class TaskApplicationService implements TaskManagementPort {
       const allTasks = await this.taskRepository.findAll();
       const filteredTasks = allTasks.filter(task => task.status.value === statusEnum);
       
-      return filteredTasks.map(task => this.toDto(task));
+      return filteredTasks.map(task => TaskDtoMapper.toTaskDto(task));
     } catch (error) {
       if (error instanceof InvalidTaskStatusError) {
         throw error;
@@ -214,7 +247,7 @@ export class TaskApplicationService implements TaskManagementPort {
         return ascending ? comparison : -comparison;
       });
       
-      return sortedTasks.map(task => this.toDto(task));
+      return sortedTasks.map(task => TaskDtoMapper.toTaskDto(task));
     } catch (error) {
       if (error instanceof Error) {
         throw new ValidationError(`Failed to get tasks sorted by due date: ${error.message}`);
@@ -247,7 +280,7 @@ export class TaskApplicationService implements TaskManagementPort {
 
       // 同じリストへの移動は何もしない
       if (task.listId === newListId) {
-        return this.toDto(task);
+        return TaskDtoMapper.toTaskDto(task);
       }
 
       // タスクのリストIDを更新
@@ -257,7 +290,7 @@ export class TaskApplicationService implements TaskManagementPort {
       await this.taskRepository.save(task);
 
       // DTOに変換して返却
-      return this.toDto(task);
+      return TaskDtoMapper.toTaskDto(task);
     } catch (error) {
       if (error instanceof ValidationError ||
           error instanceof TaskNotFoundError ||
@@ -272,18 +305,6 @@ export class TaskApplicationService implements TaskManagementPort {
     }
   }
 
-  private toDto(task: Task): TaskDto {
-    return {
-      id: task.id,
-      title: task.title.value,
-      description: task.description.value,
-      dueDate: task.dueDate ? task.dueDate.value.toISOString() : null,
-      status: this.mapFromStatusEnum(task.status.value),
-      listId: task.listId,
-      createdAt: new Date().toISOString(), // 簡易実装：現在時刻を使用
-      updatedAt: new Date().toISOString()  // 簡易実装：現在時刻を使用
-    };
-  }
 
   private mapToStatusEnum(status: 'TODO' | 'IN_PROGRESS' | 'DONE'): TaskStatusEnum {
     switch (status) {
@@ -298,16 +319,4 @@ export class TaskApplicationService implements TaskManagementPort {
     }
   }
 
-  private mapFromStatusEnum(status: TaskStatusEnum): 'TODO' | 'IN_PROGRESS' | 'DONE' {
-    switch (status) {
-      case TaskStatusEnum.TODO:
-        return 'TODO';
-      case TaskStatusEnum.IN_PROGRESS:
-        return 'IN_PROGRESS';
-      case TaskStatusEnum.DONE:
-        return 'DONE';
-      default:
-        throw new InvalidTaskStatusError(status);
-    }
-  }
 }
