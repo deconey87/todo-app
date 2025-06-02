@@ -14,10 +14,17 @@ services:
       DATABASE_USER: devuser
       DATABASE_PASSWORD: devpass
       DATABASE_NAME: devdb
+      # Puppeteer設定
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      PUPPETEER_EXECUTABLE_PATH: "/usr/bin/chromium"
     depends_on:
       - db
     tty: true
     stdin_open: true
+    # Puppeteer/Chromium用の設定
+    security_opt:
+      - seccomp:unconfined
+    shm_size: 2gb
 
   db:
     image: postgres:16-alpine
