@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { TaskListDto } from '../../src/application/dto/TaskListDto';
 import { TASK_STATUS_VALUES, TaskStatusConverter } from '../../src/shared/types/TaskStatus';
@@ -11,12 +10,10 @@ interface TaskListSidebarProps {
 
 export function TaskListSidebar({ taskLists, selectedListId }: TaskListSidebarProps) {
   return (
-    <aside className="w-64 bg-muted/50 border-r">
-      <Card className="m-4 mb-4">
-        <CardHeader>
-          <CardTitle className="text-lg">タスクリスト</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
+    <aside className="w-64 bg-gray-50 border-r border-gray-200">
+      <section className="p-4 accent-left">
+        <h2 className="text-subheading mb-4">タスクリスト</h2>
+        <div className="space-y-2">
           {taskLists.map((list) => (
             <Link
               key={list.id}
@@ -33,18 +30,16 @@ export function TaskListSidebar({ taskLists, selectedListId }: TaskListSidebarPr
           ))}
           
           {taskLists.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
+            <p className="text-caption text-muted-foreground text-center py-4">
               タスクリストがありません
             </p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card className="m-4">
-        <CardHeader>
-          <CardTitle className="text-lg">フィルター</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
+      <section className="p-4 border-t border-gray-200 accent-left">
+        <h2 className="text-subheading mb-4">フィルター</h2>
+        <div className="space-y-2">
           <Link href="/dashboard" className="block">
             <Button variant="ghost" className="w-full justify-start">
               すべてのタスク
@@ -57,8 +52,8 @@ export function TaskListSidebar({ taskLists, selectedListId }: TaskListSidebarPr
               </Button>
             </Link>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </aside>
   );
 }

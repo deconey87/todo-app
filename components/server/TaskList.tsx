@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TaskDto } from '../../src/application/dto/TaskDto';
 import { TaskItem } from './TaskItem';
 import { TaskStatusLiteral, TaskStatusConverter } from '../../src/shared/types/TaskStatus';
@@ -23,29 +22,28 @@ export function TaskList({ tasks, selectedListId, filter }: TaskListProps) {
 
   return (
     <div className="flex-1 p-6">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-xl">{getTitle()}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {tasks.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                {filter 
-                  ? `${getTitle()}がありません`
-                  : 'タスクがありません。新しいタスクを作成してください。'
-                }
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {tasks.map((task) => (
-                <TaskItem key={task.id} task={task} />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <header className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <h1 className="text-xl font-semibold text-gray-900">{getTitle()}</h1>
+        </header>
+        
+        {tasks.length === 0 ? (
+          <div className="text-center py-12 px-6">
+            <p className="text-gray-600">
+              {filter
+                ? `${getTitle()}がありません`
+                : 'タスクがありません。新しいタスクを作成してください。'
+              }
+            </p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-gray-200">
+            {tasks.map((task) => (
+              <TaskItem key={task.id} task={task} />
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

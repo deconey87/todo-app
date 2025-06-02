@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { TaskDto } from '../../src/application/dto/TaskDto';
 import { updateTaskStatusAction } from '../../app/actions/task-actions';
@@ -13,13 +12,13 @@ export function TaskItem({ task }: TaskItemProps) {
     const label = TaskStatusConverter.getLabel(status);
     switch (label) {
       case '未着手':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800';
       case '進行中':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800';
       case '完了':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600';
     }
   };
 
@@ -40,34 +39,36 @@ export function TaskItem({ task }: TaskItemProps) {
   const statusLabel = TaskStatusConverter.getLabel(task.status);
 
   return (
-    <Card className="mb-4">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{task.title}</CardTitle>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+    <li className="py-4 px-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{task.title}</h3>
+          
+          {task.description && (
+            <p className="text-gray-600 dark:text-gray-300 mb-3 text-sm leading-relaxed">{task.description}</p>
+          )}
+          
+          {task.dueDate && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+              期限: {new Date(task.dueDate).toLocaleDateString('ja-JP')}
+            </p>
+          )}
+
+          <div className="flex items-center gap-3">
+            <form action={updateTaskStatusAction.bind(null, task.id, nextStatus.value)}>
+              <Button type="submit" size="sm" variant="outline">
+                {nextStatus.label}
+              </Button>
+            </form>
+          </div>
+        </div>
+        
+        <div className="flex-shrink-0">
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(task.status)}`}>
             {statusLabel}
           </span>
         </div>
-      </CardHeader>
-      <CardContent>
-        {task.description && (
-          <p className="text-muted-foreground mb-3">{task.description}</p>
-        )}
-        
-        {task.dueDate && (
-          <p className="text-sm text-muted-foreground mb-3">
-            期限: {new Date(task.dueDate).toLocaleDateString('ja-JP')}
-          </p>
-        )}
-
-        <div className="flex gap-2">
-          <form action={updateTaskStatusAction.bind(null, task.id, nextStatus.value)}>
-            <Button type="submit" size="sm">
-              {nextStatus.label}
-            </Button>
-          </form>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </li>
   );
 }

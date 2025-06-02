@@ -4,7 +4,7 @@ import { createDependencyContainer } from '../../src/infrastructure/config/Depen
 import { revalidatePath } from 'next/cache';
 
 export async function createTaskListAction(formData: FormData) {
-  const container = createDependencyContainer();
+  const container = await createDependencyContainer();
   const taskListService = container.taskListApplicationService;
   
   const result = await taskListService.createTaskList({
@@ -16,7 +16,7 @@ export async function createTaskListAction(formData: FormData) {
 }
 
 export async function deleteTaskListAction(listId: string) {
-  const container = createDependencyContainer();
+  const container = await createDependencyContainer();
   const taskListService = container.taskListApplicationService;
   
   await taskListService.deleteTaskListWithTasks(listId);

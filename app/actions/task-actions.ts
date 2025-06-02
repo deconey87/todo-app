@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { TaskStatusLiteral } from '../../src/shared/types/TaskStatus';
 
 export async function createTaskAction(formData: FormData) {
-  const container = createDependencyContainer();
+  const container = await createDependencyContainer();
   const taskService = container.taskApplicationService;
   
   const result = await taskService.createTask({
@@ -20,7 +20,7 @@ export async function createTaskAction(formData: FormData) {
 }
 
 export async function updateTaskStatusAction(taskId: string, status: string) {
-  const container = createDependencyContainer();
+  const container = await createDependencyContainer();
   const taskService = container.taskApplicationService;
   
   await taskService.changeTaskStatus(taskId, status as TaskStatusLiteral);
@@ -28,7 +28,7 @@ export async function updateTaskStatusAction(taskId: string, status: string) {
 }
 
 export async function moveTaskAction(taskId: string, newListId: string) {
-  const container = createDependencyContainer();
+  const container = await createDependencyContainer();
   const taskService = container.taskApplicationService;
   
   await taskService.moveTaskToList(taskId, newListId);
