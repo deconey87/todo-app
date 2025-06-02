@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DependencyContainer } from '../../../../src/infrastructure/config/DependencyInjection';
+import { DependencyContainerFactory } from '../../../../src/infrastructure/config/DependencyInjection';
 import { TaskListNotFoundError } from '../../../../src/application/errors/ApplicationError';
 
 export async function GET(
@@ -7,7 +7,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const taskListService = DependencyContainer.getInstance().getTaskListService();
+    const container = DependencyContainerFactory.create();
+    const taskListService = container.getTaskListService();
     const taskList = await taskListService.getTaskList(params.id);
     
     if (!taskList) {
@@ -32,7 +33,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const taskListService = DependencyContainer.getInstance().getTaskListService();
+    const container = DependencyContainerFactory.create();
+    const taskListService = container.getTaskListService();
     await taskListService.deleteTaskList(params.id);
     
     return NextResponse.json({ message: 'Task list deleted successfully' });

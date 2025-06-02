@@ -34,7 +34,7 @@ export class InMemoryTaskListRepository implements TaskListRepositoryPort {
   }
 
   async nextId(): Promise<ListId> {
-    return uuidv4();
+    return ListId.create(uuidv4());
   }
 
   // テスト用のヘルパーメソッド

@@ -3,7 +3,7 @@ import { ListName } from './ListName.vo';
 import { ListId } from '../shared/types';
 
 describe('TaskList Entity', () => {
-  const mockListId: ListId = 'list-abc';
+  const mockListId: ListId = ListId.create('list-abc');
 
   describe('constructor', () => {
     it('should create a TaskList instance with valid properties', () => {
@@ -51,8 +51,8 @@ describe('TaskList Entity', () => {
 
     it('should return false if task lists have different IDs', () => {
       const listName = new ListName('List 1');
-      const taskList1 = new TaskList('list-1', listName);
-      const taskList2 = new TaskList('list-2', listName); // 異なるID
+      const taskList1 = new TaskList(ListId.create('list-1'), listName);
+      const taskList2 = new TaskList(ListId.create('list-2'), listName); // 異なるID
 
       expect(taskList1.equals(taskList2)).toBe(false);
     });

@@ -1,20 +1,29 @@
 export class DueDate {
   readonly value: Date;
 
-  constructor(value: Date) {
+  private constructor(value: Date) {
+    this.value = value;
+  }
+
+  static create(value: Date, currentTime?: Date): DueDate {
     if (value === null || value === undefined) {
-      throw new Error('DueDate cannot be null or undefined.');
+      throw new Error('期日は現在時刻以降である必要があります');
     }
+    
+    // 現在時刻の取得（テスト時は注入された時刻を使用）
+    const now = currentTime || new Date();
+    
     // 日付部分のみを比較するため、時刻情報をクリア
-    const today = new Date();
+    const today = new Date(now);
     today.setHours(0, 0, 0, 0);
     const dueDateOnly = new Date(value);
     dueDateOnly.setHours(0, 0, 0, 0);
 
     if (dueDateOnly < today) {
-      throw new Error('DueDate cannot be in the past.');
+      throw new Error('期日は現在時刻以降である必要があります');
     }
-    this.value = value;
+    
+    return new DueDate(value);
   }
 
   equals(other: DueDate): boolean {

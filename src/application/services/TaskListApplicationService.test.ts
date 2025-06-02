@@ -2,22 +2,33 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { TaskListApplicationService } from './TaskListApplicationService';
 import { InMemoryTaskListRepository } from '../../infrastructure/adapters/output/persistence/InMemoryTaskListRepository';
 import { InMemoryTaskRepository } from '../../infrastructure/adapters/output/persistence/InMemoryTaskRepository';
+import { TimeProvider } from '../ports/output/TimeProvider';
 import { CreateTaskListDto } from '../dto/CreateTaskListDto';
 import { ValidationError, DuplicateTaskListNameError, TaskListNotFoundError } from '../errors/ApplicationError';
 import { Task } from '../../domain/task/Task';
 import { Title } from '../../domain/task/Title.vo';
 import { Description } from '../../domain/task/Description.vo';
 import { Status, TaskStatusEnum } from '../../domain/task/Status.vo';
+import { TaskId, ListId } from '../../domain/shared/types';
 
 describe('TaskListApplicationService', () => {
   let service: TaskListApplicationService;
   let taskListRepository: InMemoryTaskListRepository;
   let taskRepository: InMemoryTaskRepository;
+  let mockTimeProvider: TimeProvider;
+  let fixedDate: Date;
 
   beforeEach(() => {
     taskListRepository = new InMemoryTaskListRepository();
     taskRepository = new InMemoryTaskRepository();
-    service = new TaskListApplicationService(taskListRepository, taskRepository);
+    
+    // 固定時刻を設定（テストの一貫性のため）
+    fixedDate = new Date('2024-06-02T10:00:00.000Z');
+    mockTimeProvider = {
+      now: () => fixedDate
+    };
+    
+    service = new TaskListApplicationService(taskListRepository, taskRepository, mockTimeProvider);
   });
 
   describe('createTaskList', () => {
@@ -149,20 +160,20 @@ describe('TaskListApplicationService', () => {
     it('should return tasks for the specified list', async () => {
       // タスクを直接リポジトリに追加
       const task1 = new Task(
-        'task-1',
+        TaskId.create('task-1'),
         new Title('Task 1'),
         new Description('Description 1'),
         null,
         new Status(TaskStatusEnum.TODO),
-        listId
+        ListId.create(listId)
       );
       const task2 = new Task(
-        'task-2',
+        TaskId.create('task-2'),
         new Title('Task 2'),
         new Description('Description 2'),
         null,
         new Status(TaskStatusEnum.IN_PROGRESS),
-        listId
+        ListId.create(listId)
       );
 
       await taskRepository.save(task1);
@@ -258,20 +269,20 @@ describe('TaskListApplicationService', () => {
     it('should delete task list with related tasks (cascade delete)', async () => {
       // タスクを追加
       const task1 = new Task(
-        'task-1',
+        TaskId.create('task-1'),
         new Title('Task 1'),
         new Description('Description 1'),
         null,
         new Status(TaskStatusEnum.TODO),
-        listId
+        ListId.create(listId)
       );
       const task2 = new Task(
-        'task-2',
+        TaskId.create('task-2'),
         new Title('Task 2'),
         new Description('Description 2'),
         null,
         new Status(TaskStatusEnum.DONE),
-        listId
+        ListId.create(listId)
       );
 
       await taskRepository.save(task1);
@@ -298,20 +309,20 @@ describe('TaskListApplicationService', () => {
       
       // 両方のリストにタスクを追加
       const task1 = new Task(
-        'task-1',
+        TaskId.create('task-1'),
         new Title('Task in first list'),
         new Description('Description 1'),
         null,
         new Status(TaskStatusEnum.TODO),
-        listId
+        ListId.create(listId)
       );
       const task2 = new Task(
-        'task-2',
+        TaskId.create('task-2'),
         new Title('Task in second list'),
         new Description('Description 2'),
         null,
         new Status(TaskStatusEnum.TODO),
-        anotherList.id
+        ListId.create(anotherList.id)
       );
 
       await taskRepository.save(task1);
@@ -329,7 +340,7 @@ describe('TaskListApplicationService', () => {
       expect(secondListResult).toBeDefined();
       expect(taskRepository.size()).toBe(1);
       
-      const remainingTask = await taskRepository.findById('task-2');
+      const remainingTask = await taskRepository.findById(TaskId.create('task-2'));
       expect(remainingTask).toBeDefined();
       expect(remainingTask!.listId).toBe(anotherList.id);
     });

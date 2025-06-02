@@ -1,6 +1,7 @@
 import { TaskApplicationService } from './TaskApplicationService';
 import { TaskRepositoryPort } from '../ports/output/TaskRepositoryPort';
 import { TaskListRepositoryPort } from '../ports/output/TaskListRepositoryPort';
+import { TimeProvider } from '../ports/output/TimeProvider';
 import { InMemoryTaskRepository } from '../../infrastructure/adapters/output/persistence/InMemoryTaskRepository';
 import { InMemoryTaskListRepository } from '../../infrastructure/adapters/output/persistence/InMemoryTaskListRepository';
 import { TaskList } from '../../domain/taskList/TaskList';
@@ -8,20 +9,30 @@ import { ListName } from '../../domain/taskList/ListName.vo';
 import { CreateTaskDto } from '../dto/CreateTaskDto';
 import { UpdateTaskDto } from '../dto/UpdateTaskDto';
 import { TaskNotFoundError, TaskListNotFoundError, ValidationError } from '../errors/ApplicationError';
+import { ListId } from '../../domain/shared/types';
 
 describe('TaskApplicationService', () => {
   let taskService: TaskApplicationService;
   let taskRepository: TaskRepositoryPort;
   let taskListRepository: TaskListRepositoryPort;
+  let mockTimeProvider: TimeProvider;
   let testListId: string;
+  let fixedDate: Date;
 
   beforeEach(async () => {
     taskRepository = new InMemoryTaskRepository();
     taskListRepository = new InMemoryTaskListRepository();
-    taskService = new TaskApplicationService(taskRepository, taskListRepository);
+    
+    // 固定時刻を設定（テストの一貫性のため）
+    fixedDate = new Date('2024-06-02T10:00:00.000Z');
+    mockTimeProvider = {
+      now: () => fixedDate
+    };
+    
+    taskService = new TaskApplicationService(taskRepository, taskListRepository, mockTimeProvider);
 
     // テスト用のタスクリストを作成
-    const taskList = new TaskList('test-list-id', new ListName('テストリスト'));
+    const taskList = new TaskList(ListId.create('test-list-id'), new ListName('テストリスト'));
     await taskListRepository.save(taskList);
     testListId = taskList.id;
   });
@@ -284,7 +295,7 @@ describe('TaskApplicationService', () => {
       taskId = task.id;
 
       // 移動先のタスクリストを作成
-      const anotherList = new TaskList('another-list-id', new ListName('別のリスト'));
+      const anotherList = new TaskList(ListId.create('another-list-id'), new ListName('別のリスト'));
       await taskListRepository.save(anotherList);
       anotherListId = anotherList.id;
     });

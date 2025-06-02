@@ -1,6 +1,7 @@
 import { TaskListManagementPort } from '../ports/input/TaskListManagementPort';
 import { TaskListRepositoryPort } from '../ports/output/TaskListRepositoryPort';
 import { TaskRepositoryPort } from '../ports/output/TaskRepositoryPort';
+import { TimeProvider } from '../ports/output/TimeProvider';
 import { CreateTaskListDto } from '../dto/CreateTaskListDto';
 import { TaskListDto } from '../dto/TaskListDto';
 import { TaskDto } from '../dto/TaskDto';
@@ -13,7 +14,8 @@ import { TaskListNotFoundError, ValidationError, DuplicateTaskListNameError } fr
 export class TaskListApplicationService implements TaskListManagementPort {
   constructor(
     private taskListRepository: TaskListRepositoryPort,
-    private taskRepository: TaskRepositoryPort
+    private taskRepository: TaskRepositoryPort,
+    private timeProvider: TimeProvider
   ) {}
 
   async createTaskList(dto: CreateTaskListDto): Promise<TaskListDto> {
@@ -55,7 +57,7 @@ export class TaskListApplicationService implements TaskListManagementPort {
   }
 
   async getTaskList(id: string): Promise<TaskListDto | null> {
-    const taskList = await this.taskListRepository.findById(id);
+    const taskList = await this.taskListRepository.findById(ListId.create(id));
     return taskList ? this.toDto(taskList) : null;
   }
 
@@ -65,11 +67,11 @@ export class TaskListApplicationService implements TaskListManagementPort {
   }
 
   async deleteTaskList(id: string): Promise<void> {
-    const taskList = await this.taskListRepository.findById(id);
+    const taskList = await this.taskListRepository.findById(ListId.create(id));
     if (!taskList) {
       throw new TaskListNotFoundError(id);
     }
-    await this.taskListRepository.delete(id);
+    await this.taskListRepository.delete(ListId.create(id));
   }
 
   async getTasksByListId(listId: string): Promise<TaskDto[]> {
@@ -80,16 +82,16 @@ export class TaskListApplicationService implements TaskListManagementPort {
 
     try {
       // タスクリストの存在確認
-      const taskList = await this.taskListRepository.findById(listId);
+      const taskList = await this.taskListRepository.findById(ListId.create(listId));
       if (!taskList) {
         throw new TaskListNotFoundError(listId);
       }
 
       // タスクを取得
-      const tasks = await this.taskRepository.findByListId(listId);
+      const tasks = await this.taskRepository.findByListId(ListId.create(listId));
       
       // DTOに変換して返却
-      return tasks.map(task => TaskDtoMapper.toTaskDto(task));
+      return tasks.map(task => TaskDtoMapper.toTaskDto(task, this.timeProvider));
     } catch (error) {
       if (error instanceof ValidationError ||
           error instanceof TaskListNotFoundError) {
@@ -110,7 +112,7 @@ export class TaskListApplicationService implements TaskListManagementPort {
 
     try {
       // タスクリストの存在確認
-      const taskList = await this.taskListRepository.findById(id);
+      const taskList = await this.taskListRepository.findById(ListId.create(id));
       if (!taskList) {
         throw new TaskListNotFoundError(id);
       }
@@ -156,16 +158,16 @@ export class TaskListApplicationService implements TaskListManagementPort {
 
     try {
       // タスクリストの存在確認
-      const taskList = await this.taskListRepository.findById(id);
+      const taskList = await this.taskListRepository.findById(ListId.create(id));
       if (!taskList) {
         throw new TaskListNotFoundError(id);
       }
 
       // 関連するタスクを削除（カスケード削除）
-      await this.taskRepository.deleteByListId(id);
+      await this.taskRepository.deleteByListId(ListId.create(id));
 
       // タスクリストを削除
-      await this.taskListRepository.delete(id);
+      await this.taskListRepository.delete(ListId.create(id));
     } catch (error) {
       if (error instanceof ValidationError ||
           error instanceof TaskListNotFoundError) {
@@ -177,11 +179,13 @@ export class TaskListApplicationService implements TaskListManagementPort {
 
 
   private toDto(taskList: TaskList): TaskListDto {
+    const currentTime = this.timeProvider.now().toISOString();
+    
     return {
       id: taskList.id,
       name: taskList.name.value,
-      createdAt: new Date().toISOString(), // 簡易実装：現在時刻を使用
-      updatedAt: new Date().toISOString()  // 簡易実装：現在時刻を使用
+      createdAt: currentTime,
+      updatedAt: currentTime
     };
   }
 }

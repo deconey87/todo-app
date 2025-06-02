@@ -1,6 +1,7 @@
 import { TaskManagementPort } from '../ports/input/TaskManagementPort';
 import { TaskRepositoryPort } from '../ports/output/TaskRepositoryPort';
 import { TaskListRepositoryPort } from '../ports/output/TaskListRepositoryPort';
+import { TimeProvider } from '../ports/output/TimeProvider';
 import { CreateTaskDto } from '../dto/CreateTaskDto';
 import { UpdateTaskDto } from '../dto/UpdateTaskDto';
 import { TaskDto } from '../dto/TaskDto';
@@ -10,7 +11,7 @@ import { Title } from '../../domain/task/Title.vo';
 import { Description } from '../../domain/task/Description.vo';
 import { DueDate } from '../../domain/task/DueDate.vo';
 import { Status, TaskStatusEnum } from '../../domain/task/Status.vo';
-import { TaskId } from '../../domain/shared/types';
+import { TaskId, ListId } from '../../domain/shared/types';
 import {
   TaskNotFoundError,
   TaskListNotFoundError,
@@ -21,7 +22,8 @@ import {
 export class TaskApplicationService implements TaskManagementPort {
   constructor(
     private taskRepository: TaskRepositoryPort,
-    private taskListRepository: TaskListRepositoryPort
+    private taskListRepository: TaskListRepositoryPort,
+    private timeProvider: TimeProvider
   ) {}
 
   async createTask(dto: CreateTaskDto): Promise<TaskDto> {
@@ -31,7 +33,7 @@ export class TaskApplicationService implements TaskManagementPort {
       const task = await this.buildTaskFromDto(dto);
       
       await this.taskRepository.save(task);
-      return TaskDtoMapper.toTaskDto(task);
+      return TaskDtoMapper.toTaskDto(task, this.timeProvider);
     } catch (error) {
       if (error instanceof ValidationError ||
           error instanceof TaskListNotFoundError ||
@@ -62,7 +64,7 @@ export class TaskApplicationService implements TaskManagementPort {
    * タスクリストの存在確認
    */
   private async ensureTaskListExists(listId: string): Promise<void> {
-    const taskList = await this.taskListRepository.findById(listId);
+    const taskList = await this.taskListRepository.findById(ListId.create(listId));
     if (!taskList) {
       throw new TaskListNotFoundError(listId);
     }
@@ -74,12 +76,12 @@ export class TaskApplicationService implements TaskManagementPort {
   private async buildTaskFromDto(dto: CreateTaskDto): Promise<Task> {
     const title = new Title(dto.title.trim());
     const description = new Description(dto.description?.trim() || '');
-    const dueDate = dto.dueDate ? new DueDate(new Date(dto.dueDate)) : null;
+    const dueDate = dto.dueDate ? DueDate.create(new Date(dto.dueDate), this.timeProvider.now()) : null;
     const status = dto.status ? this.mapToStatusEnum(dto.status) : TaskStatusEnum.TODO;
     const taskStatus = new Status(status);
 
     const taskId: TaskId = await this.taskRepository.nextId();
-    return new Task(taskId, title, description, dueDate, taskStatus, dto.listId);
+    return new Task(taskId, title, description, dueDate, taskStatus, ListId.create(dto.listId));
   }
 
   async updateTask(id: string, dto: UpdateTaskDto): Promise<TaskDto> {
@@ -90,7 +92,7 @@ export class TaskApplicationService implements TaskManagementPort {
       await this.updateTaskProperties(task, dto);
       
       await this.taskRepository.save(task);
-      return TaskDtoMapper.toTaskDto(task);
+      return TaskDtoMapper.toTaskDto(task, this.timeProvider);
     } catch (error) {
       if (error instanceof ValidationError ||
           error instanceof TaskListNotFoundError ||
@@ -118,7 +120,7 @@ export class TaskApplicationService implements TaskManagementPort {
    * 既存タスクを取得
    */
   private async findExistingTask(taskId: string): Promise<Task> {
-    const task = await this.taskRepository.findById(taskId);
+    const task = await this.taskRepository.findById(TaskId.create(taskId));
     if (!task) {
       throw new TaskNotFoundError(taskId);
     }
@@ -131,11 +133,11 @@ export class TaskApplicationService implements TaskManagementPort {
   private async updateTaskProperties(task: Task, dto: UpdateTaskDto): Promise<void> {
     // タスクリストの変更がある場合は存在確認
     if (dto.listId && dto.listId !== task.listId) {
-      const taskList = await this.taskListRepository.findById(dto.listId);
+      const taskList = await this.taskListRepository.findById(ListId.create(dto.listId));
       if (!taskList) {
         throw new TaskListNotFoundError(dto.listId);
       }
-      task.moveToList(dto.listId);
+      task.moveToList(ListId.create(dto.listId));
     }
 
     // 各フィールドの更新
@@ -148,7 +150,7 @@ export class TaskApplicationService implements TaskManagementPort {
     }
 
     if (dto.dueDate !== undefined) {
-      const dueDate = dto.dueDate ? new DueDate(new Date(dto.dueDate)) : null;
+      const dueDate = dto.dueDate ? DueDate.create(new Date(dto.dueDate), this.timeProvider.now()) : null;
       task.changeDueDate(dueDate);
     }
 
@@ -159,30 +161,30 @@ export class TaskApplicationService implements TaskManagementPort {
   }
 
   async deleteTask(id: string): Promise<void> {
-    const task = await this.taskRepository.findById(id);
+    const task = await this.taskRepository.findById(TaskId.create(id));
     if (!task) {
       throw new TaskNotFoundError(id);
     }
-    await this.taskRepository.delete(id);
+    await this.taskRepository.delete(TaskId.create(id));
   }
 
   async getTask(id: string): Promise<TaskDto | null> {
-    const task = await this.taskRepository.findById(id);
-    return task ? TaskDtoMapper.toTaskDto(task) : null;
+    const task = await this.taskRepository.findById(TaskId.create(id));
+    return task ? TaskDtoMapper.toTaskDto(task, this.timeProvider) : null;
   }
 
   async getTasksByListId(listId: string): Promise<TaskDto[]> {
-    const tasks = await this.taskRepository.findByListId(listId);
-    return tasks.map(task => TaskDtoMapper.toTaskDto(task));
+    const tasks = await this.taskRepository.findByListId(ListId.create(listId));
+    return tasks.map(task => TaskDtoMapper.toTaskDto(task, this.timeProvider));
   }
 
   async getAllTasks(): Promise<TaskDto[]> {
     const tasks = await this.taskRepository.findAll();
-    return tasks.map(task => TaskDtoMapper.toTaskDto(task));
+    return tasks.map(task => TaskDtoMapper.toTaskDto(task, this.timeProvider));
   }
 
   async changeTaskStatus(id: string, status: 'TODO' | 'IN_PROGRESS' | 'DONE'): Promise<TaskDto> {
-    const task = await this.taskRepository.findById(id);
+    const task = await this.taskRepository.findById(TaskId.create(id));
     if (!task) {
       throw new TaskNotFoundError(id);
     }
@@ -195,7 +197,7 @@ export class TaskApplicationService implements TaskManagementPort {
       await this.taskRepository.save(task);
 
       // DTOに変換して返却
-      return TaskDtoMapper.toTaskDto(task);
+      return TaskDtoMapper.toTaskDto(task, this.timeProvider);
     } catch (error) {
       if (error instanceof InvalidTaskStatusError) {
         throw error;
@@ -217,7 +219,7 @@ export class TaskApplicationService implements TaskManagementPort {
       const allTasks = await this.taskRepository.findAll();
       const filteredTasks = allTasks.filter(task => task.status.value === statusEnum);
       
-      return filteredTasks.map(task => TaskDtoMapper.toTaskDto(task));
+      return filteredTasks.map(task => TaskDtoMapper.toTaskDto(task, this.timeProvider));
     } catch (error) {
       if (error instanceof InvalidTaskStatusError) {
         throw error;
@@ -247,7 +249,7 @@ export class TaskApplicationService implements TaskManagementPort {
         return ascending ? comparison : -comparison;
       });
       
-      return sortedTasks.map(task => TaskDtoMapper.toTaskDto(task));
+      return sortedTasks.map(task => TaskDtoMapper.toTaskDto(task, this.timeProvider));
     } catch (error) {
       if (error instanceof Error) {
         throw new ValidationError(`Failed to get tasks sorted by due date: ${error.message}`);
@@ -267,30 +269,30 @@ export class TaskApplicationService implements TaskManagementPort {
 
     try {
       // タスクの存在確認
-      const task = await this.taskRepository.findById(taskId);
+      const task = await this.taskRepository.findById(TaskId.create(taskId));
       if (!task) {
         throw new TaskNotFoundError(taskId);
       }
 
       // 移動先タスクリストの存在確認
-      const targetList = await this.taskListRepository.findById(newListId);
+      const targetList = await this.taskListRepository.findById(ListId.create(newListId));
       if (!targetList) {
         throw new TaskListNotFoundError(newListId);
       }
 
       // 同じリストへの移動は何もしない
-      if (task.listId === newListId) {
-        return TaskDtoMapper.toTaskDto(task);
+      if (task.listId === ListId.create(newListId)) {
+        return TaskDtoMapper.toTaskDto(task, this.timeProvider);
       }
 
       // タスクのリストIDを更新
-      task.moveToList(newListId);
+      task.moveToList(ListId.create(newListId));
       
       // 永続化
       await this.taskRepository.save(task);
 
       // DTOに変換して返却
-      return TaskDtoMapper.toTaskDto(task);
+      return TaskDtoMapper.toTaskDto(task, this.timeProvider);
     } catch (error) {
       if (error instanceof ValidationError ||
           error instanceof TaskNotFoundError ||

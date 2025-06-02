@@ -6,14 +6,19 @@ import { Status, TaskStatusEnum } from './Status.vo';
 import { TaskId, ListId } from '../shared/types';
 
 describe('Task Entity', () => {
-  const mockTaskId: TaskId = 'task-123';
-  const mockListId: ListId = 'list-abc';
+  const mockTaskId: TaskId = TaskId.create('task-123');
+  const mockListId: ListId = ListId.create('list-abc');
+  
+  // 固定時刻を使用してテストの安定性を向上
+  const fixedTime = new Date('2024-06-02T10:00:00.000Z');
+  const futureDate = new Date('2024-06-03T10:00:00.000Z');
+  const anotherFutureDate = new Date('2024-06-09T10:00:00.000Z'); // 1週間後
 
   describe('constructor', () => {
     it('should create a Task instance with valid properties', () => {
       const title = new Title('Test Task');
       const description = new Description('This is a test description.');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1))); // 明日の日付
+      const dueDate = DueDate.create(futureDate, fixedTime); // 明日の日付
       const status = new Status(TaskStatusEnum.TODO);
 
       const task = new Task(mockTaskId, title, description, dueDate, status, mockListId);
@@ -21,7 +26,7 @@ describe('Task Entity', () => {
       expect(task.id).toBe(mockTaskId);
       expect(task.title.value).toBe('Test Task');
       expect(task.description.value).toBe('This is a test description.');
-      expect(task.dueDate.value.toISOString().split('T')[0]).toBe(dueDate.value.toISOString().split('T')[0]);
+      expect(task.dueDate!.value.toISOString().split('T')[0]).toBe(dueDate.value.toISOString().split('T')[0]);
       expect(task.status.value).toBe(TaskStatusEnum.TODO);
       expect(task.listId).toBe(mockListId);
     });
@@ -29,7 +34,7 @@ describe('Task Entity', () => {
     it('should create a Task instance with minimum valid properties (empty description)', () => {
       const title = new Title('Minimum Task');
       const description = new Description(''); // 空の説明
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
 
       const task = new Task(mockTaskId, title, description, dueDate, status, mockListId);
@@ -37,7 +42,7 @@ describe('Task Entity', () => {
       expect(task.id).toBe(mockTaskId);
       expect(task.title.value).toBe('Minimum Task');
       expect(task.description.value).toBe('');
-      expect(task.dueDate.value.toISOString().split('T')[0]).toBe(dueDate.value.toISOString().split('T')[0]);
+      expect(task.dueDate!.value.toISOString().split('T')[0]).toBe(dueDate.value.toISOString().split('T')[0]);
       expect(task.status.value).toBe(TaskStatusEnum.TODO);
       expect(task.listId).toBe(mockListId);
     });
@@ -45,7 +50,7 @@ describe('Task Entity', () => {
     it('should throw an error if listId is null or undefined', () => {
       const title = new Title('Test Task');
       const description = new Description('This is a test description.');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
 
       // @ts-expect-error: Testing invalid input
@@ -59,7 +64,7 @@ describe('Task Entity', () => {
     it('should change the title of the task', () => {
       const initialTitle = new Title('Initial Title');
       const description = new Description('Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
       const task = new Task(mockTaskId, initialTitle, description, dueDate, status, mockListId);
 
@@ -74,7 +79,7 @@ describe('Task Entity', () => {
     it('should change the description of the task', () => {
       const title = new Title('Test Task');
       const initialDescription = new Description('Initial Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
       const task = new Task(mockTaskId, title, initialDescription, dueDate, status, mockListId);
 
@@ -87,7 +92,7 @@ describe('Task Entity', () => {
     it('should change the description to an empty string', () => {
       const title = new Title('Test Task');
       const initialDescription = new Description('Initial Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
       const task = new Task(mockTaskId, title, initialDescription, dueDate, status, mockListId);
 
@@ -102,14 +107,14 @@ describe('Task Entity', () => {
     it('should change the due date of the task to a future date', () => {
       const title = new Title('Test Task');
       const description = new Description('Description');
-      const initialDueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const initialDueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
       const task = new Task(mockTaskId, title, description, initialDueDate, status, mockListId);
 
-      const newDueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 7))); // 1週間後の日付
+      const newDueDate = DueDate.create(anotherFutureDate, fixedTime); // 1週間後の日付
       task.changeDueDate(newDueDate);
 
-      expect(task.dueDate.value.toISOString().split('T')[0]).toBe(newDueDate.value.toISOString().split('T')[0]);
+      expect(task.dueDate!.value.toISOString().split('T')[0]).toBe(newDueDate.value.toISOString().split('T')[0]);
     });
   });
 
@@ -117,7 +122,7 @@ describe('Task Entity', () => {
     it('should change the status of the task', () => {
       const title = new Title('Test Task');
       const description = new Description('Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const initialStatus = new Status(TaskStatusEnum.TODO);
       const task = new Task(mockTaskId, title, description, dueDate, initialStatus, mockListId);
 
@@ -132,7 +137,7 @@ describe('Task Entity', () => {
     it('should mark the task as completed', () => {
       const title = new Title('Test Task');
       const description = new Description('Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
       const task = new Task(mockTaskId, title, description, dueDate, status, mockListId);
 
@@ -143,7 +148,7 @@ describe('Task Entity', () => {
     it('should mark the task as in progress', () => {
       const title = new Title('Test Task');
       const description = new Description('Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
       const task = new Task(mockTaskId, title, description, dueDate, status, mockListId);
 
@@ -154,7 +159,7 @@ describe('Task Entity', () => {
     it('should mark the task as todo', () => {
       const title = new Title('Test Task');
       const description = new Description('Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.IN_PROGRESS);
       const task = new Task(mockTaskId, title, description, dueDate, status, mockListId);
 
@@ -167,7 +172,7 @@ describe('Task Entity', () => {
     it('should return true if tasks have the same ID', () => {
       const title = new Title('Test Task');
       const description = new Description('Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
 
       const task1 = new Task(mockTaskId, title, description, dueDate, status, mockListId);
@@ -179,11 +184,11 @@ describe('Task Entity', () => {
     it('should return false if tasks have different IDs', () => {
       const title = new Title('Test Task');
       const description = new Description('Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
 
-      const task1 = new Task('task-1', title, description, dueDate, status, mockListId);
-      const task2 = new Task('task-2', title, description, dueDate, status, mockListId); // 異なるID
+      const task1 = new Task(TaskId.create('task-1'), title, description, dueDate, status, mockListId);
+      const task2 = new Task(TaskId.create('task-2'), title, description, dueDate, status, mockListId); // 異なるID
 
       expect(task1.equals(task2)).toBe(false);
     });
@@ -193,11 +198,11 @@ describe('Task Entity', () => {
     it('should move the task to a new list', () => {
       const title = new Title('Test Task');
       const description = new Description('Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
       const task = new Task(mockTaskId, title, description, dueDate, status, mockListId);
 
-      const newListId: ListId = 'new-list-xyz';
+      const newListId: ListId = ListId.create('new-list-xyz');
       task.moveToList(newListId);
 
       expect(task.listId).toBe(newListId);
@@ -206,7 +211,7 @@ describe('Task Entity', () => {
     it('should throw an error if new listId is null or undefined', () => {
       const title = new Title('Test Task');
       const description = new Description('Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
       const task = new Task(mockTaskId, title, description, dueDate, status, mockListId);
 
@@ -219,11 +224,11 @@ describe('Task Entity', () => {
     it('should throw an error if new listId is empty string', () => {
       const title = new Title('Test Task');
       const description = new Description('Description');
-      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const dueDate = DueDate.create(futureDate, fixedTime);
       const status = new Status(TaskStatusEnum.TODO);
       const task = new Task(mockTaskId, title, description, dueDate, status, mockListId);
 
-      expect(() => task.moveToList('')).toThrow('Task must belong to a list (listId is required).');
+      expect(() => task.moveToList(ListId.create(''))).toThrow('Task must belong to a list (listId is required).');
     });
   });
 });

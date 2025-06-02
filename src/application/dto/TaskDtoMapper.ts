@@ -2,6 +2,7 @@ import { Task } from '../../domain/task/Task';
 import { TaskDto } from './TaskDto';
 import { TaskStatusEnum } from '../../domain/task/Status.vo';
 import { InvalidTaskStatusError } from '../errors/ApplicationError';
+import { TimeProvider } from '../ports/output/TimeProvider';
 
 /**
  * TaskエンティティとTaskDTO間のマッピングを担当するクラス
@@ -11,9 +12,12 @@ export class TaskDtoMapper {
   /**
    * TaskエンティティをTaskDTOに変換
    * @param task Taskエンティティ
+   * @param timeProvider 時刻提供者
    * @returns TaskDTO
    */
-  static toTaskDto(task: Task): TaskDto {
+  static toTaskDto(task: Task, timeProvider: TimeProvider): TaskDto {
+    const currentTime = timeProvider.now().toISOString();
+    
     return {
       id: task.id,
       title: task.title.value,
@@ -21,8 +25,8 @@ export class TaskDtoMapper {
       dueDate: task.dueDate ? task.dueDate.value.toISOString() : null,
       status: this.mapFromStatusEnum(task.status.value),
       listId: task.listId,
-      createdAt: new Date().toISOString(), // 簡易実装：現在時刻を使用
-      updatedAt: new Date().toISOString()  // 簡易実装：現在時刻を使用
+      createdAt: currentTime,
+      updatedAt: currentTime
     };
   }
 

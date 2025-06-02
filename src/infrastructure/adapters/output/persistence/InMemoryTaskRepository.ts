@@ -43,7 +43,7 @@ export class InMemoryTaskRepository implements TaskRepositoryPort {
   }
 
   async nextId(): Promise<TaskId> {
-    return uuidv4();
+    return TaskId.create(uuidv4());
   }
 
   // テスト用のヘルパーメソッド
@@ -60,7 +60,7 @@ export class InMemoryTaskRepository implements TaskRepositoryPort {
     // 実際のプロジェクトでは、より堅牢なクローン機能が必要
     const clonedTitle = new Title(task.title.value);
     const clonedDescription = new Description(task.description.value);
-    const clonedDueDate = task.dueDate ? new DueDate(new Date(task.dueDate.value)) : null;
+    const clonedDueDate = task.dueDate ? DueDate.create(new Date(task.dueDate.value)) : null;
     const clonedStatus = new Status(task.status.value);
     
     return new Task(

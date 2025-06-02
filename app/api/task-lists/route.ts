@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DependencyContainer } from '../../../src/infrastructure/config/DependencyInjection';
+import { DependencyContainerFactory } from '../../../src/infrastructure/config/DependencyInjection';
 import { CreateTaskListDto } from '../../../src/application/dto/CreateTaskListDto';
 import { ValidationError, DuplicateTaskListNameError } from '../../../src/application/errors/ApplicationError';
 
 export async function GET() {
   try {
-    const taskListService = DependencyContainer.getInstance().getTaskListService();
+    const container = DependencyContainerFactory.create();
+    const taskListService = container.getTaskListService();
     const taskLists = await taskListService.getAllTaskLists();
     
     return NextResponse.json(taskLists);
@@ -25,7 +26,8 @@ export async function POST(request: NextRequest) {
       name: body.name
     };
 
-    const taskListService = DependencyContainer.getInstance().getTaskListService();
+    const container = DependencyContainerFactory.create();
+    const taskListService = container.getTaskListService();
     const taskList = await taskListService.createTaskList(dto);
     
     return NextResponse.json(taskList, { status: 201 });
