@@ -8,7 +8,7 @@ export class Task {
   readonly id: TaskId;
   private _title: Title;
   private _description: Description;
-  private _dueDate: DueDate;
+  private _dueDate: DueDate | null;
   private _status: Status;
   private _listId: ListId;
 
@@ -16,7 +16,7 @@ export class Task {
     id: TaskId,
     title: Title,
     description: Description,
-    dueDate: DueDate,
+    dueDate: DueDate | null,
     status: Status,
     listId: ListId,
   ) {
@@ -39,7 +39,7 @@ export class Task {
     return this._description;
   }
 
-  get dueDate(): DueDate {
+  get dueDate(): DueDate | null {
     return this._dueDate;
   }
 
@@ -59,7 +59,7 @@ export class Task {
     this._description = newDescription;
   }
 
-  changeDueDate(newDueDate: DueDate): void {
+  changeDueDate(newDueDate: DueDate | null): void {
     this._dueDate = newDueDate;
   }
 
@@ -77,6 +77,13 @@ export class Task {
 
   markAsTodo(): void {
     this._status = new Status(TaskStatusEnum.TODO);
+  }
+
+  moveToList(newListId: ListId): void {
+    if (!newListId) {
+      throw new Error('Task must belong to a list (listId is required).');
+    }
+    this._listId = newListId;
   }
 
   // Taskの同一性を判断

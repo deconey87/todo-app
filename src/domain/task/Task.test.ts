@@ -188,4 +188,42 @@ describe('Task Entity', () => {
       expect(task1.equals(task2)).toBe(false);
     });
   });
+
+  describe('moveToList', () => {
+    it('should move the task to a new list', () => {
+      const title = new Title('Test Task');
+      const description = new Description('Description');
+      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const status = new Status(TaskStatusEnum.TODO);
+      const task = new Task(mockTaskId, title, description, dueDate, status, mockListId);
+
+      const newListId: ListId = 'new-list-xyz';
+      task.moveToList(newListId);
+
+      expect(task.listId).toBe(newListId);
+    });
+
+    it('should throw an error if new listId is null or undefined', () => {
+      const title = new Title('Test Task');
+      const description = new Description('Description');
+      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const status = new Status(TaskStatusEnum.TODO);
+      const task = new Task(mockTaskId, title, description, dueDate, status, mockListId);
+
+      // @ts-expect-error: Testing invalid input
+      expect(() => task.moveToList(null)).toThrow('Task must belong to a list (listId is required).');
+      // @ts-expect-error: Testing invalid input
+      expect(() => task.moveToList(undefined)).toThrow('Task must belong to a list (listId is required).');
+    });
+
+    it('should throw an error if new listId is empty string', () => {
+      const title = new Title('Test Task');
+      const description = new Description('Description');
+      const dueDate = new DueDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+      const status = new Status(TaskStatusEnum.TODO);
+      const task = new Task(mockTaskId, title, description, dueDate, status, mockListId);
+
+      expect(() => task.moveToList('')).toThrow('Task must belong to a list (listId is required).');
+    });
+  });
 });

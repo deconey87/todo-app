@@ -29,3 +29,21 @@ export class DuplicateTaskListNameError extends ApplicationError {
     super(`Task list with name '${name}' already exists`);
   }
 }
+
+export class TaskNotFoundError extends ApplicationError {
+  readonly code = 'TASK_NOT_FOUND';
+  readonly statusCode = 404;
+  
+  constructor(taskId: string) {
+    super(`Task with id ${taskId} not found`);
+  }
+}
+
+export class InvalidTaskStatusError extends ApplicationError {
+  readonly code = 'INVALID_TASK_STATUS';
+  readonly statusCode = 400;
+  
+  constructor(status: string) {
+    super(`Invalid task status: ${status}`);
+  }
+}
