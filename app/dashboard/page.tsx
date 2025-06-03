@@ -45,11 +45,15 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         selectedListId={selectedListId}
       />
       <main className="flex-1 flex flex-col">
-        <DashboardHeader />
+        <DashboardHeader
+          taskLists={taskLists}
+          selectedListId={selectedListId}
+        />
         <TaskList
           tasks={tasks}
           selectedListId={selectedListId}
           filter={params.filter}
+          taskLists={taskLists}
         />
       </main>
     </div>

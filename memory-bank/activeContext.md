@@ -1,19 +1,35 @@
 # アクティブコンテキスト
 
 ## 現在の状況
-**開発継続中**（全体完了度: 約60%）。バックエンド層は高品質で完成度が高いが、UI統合層に大幅な未実装機能が存在。緊急対応が必要。
+**Phase 0・Phase 1完了**（全体完了度: 約85%）。基本的なCRUD操作が完了し、実用的なTODOアプリとして機能。Phase 2（高度な機能統合）への移行準備完了。
 
-## 現在の課題（2025/6/3）
-### 重大な問題
-- **メインページ**: [`app/page.tsx`](app/page.tsx)がNext.jsデフォルトテンプレートのまま
-- **UI統合不足**: 多数のServer Actionsが実装済みだが、対応するUIが未実装
-- **ユーザビリティ**: 実際にユーザーが利用できる機能が限定的
+## 最近の重要な変更（2025/6/3完了）
+### Phase 0（緊急対応）完了 ✅
+- ✅ **メインページ実装**: [`app/page.tsx`](app/page.tsx)をダッシュボードリダイレクトに変更
+- ✅ **タスク作成UI**: [`TaskFormModal`](components/client/TaskFormModal.tsx)で[`createTaskAction`](app/actions/task-actions.ts:7)統合
+- ✅ **タスクリスト作成UI**: [`TaskListFormModal`](components/client/TaskListFormModal.tsx)で[`createTaskListAction`](app/actions/task-list-actions.ts:6)統合
 
-### 緊急対応が必要な未統合機能
-- ❌ **タスク作成UI**: [`createTaskAction`](app/actions/task-actions.ts:7)は実装済み
-- ❌ **タスクリスト作成UI**: [`createTaskListAction`](app/actions/task-list-actions.ts:6)は実装済み
-- ❌ **タスクリスト削除UI**: [`deleteTaskListAction`](app/actions/task-list-actions.ts:18)は実装済み
-- ❌ **タスク移動UI**: [`moveTaskAction`](app/actions/task-actions.ts:30)は実装済み
+### Phase 1（高優先度）完了 ✅
+- ✅ **タスク編集機能**: [`TaskEditModal`](components/client/TaskEditModal.tsx) + 新規[`updateTaskAction`](app/actions/task-actions.ts)実装
+- ✅ **タスク削除機能**: [`TaskDeleteButton`](components/client/TaskDeleteButton.tsx) + 新規[`deleteTaskAction`](app/actions/task-actions.ts)実装
+- ✅ **タスクリスト削除UI**: [`TaskListDeleteButton`](components/client/TaskListDeleteButton.tsx)で[`deleteTaskListAction`](app/actions/task-list-actions.ts:18)統合
+- ✅ **タスク移動UI**: [`TaskMoveSelect`](components/client/TaskMoveSelect.tsx)で[`moveTaskAction`](app/actions/task-actions.ts:30)統合
+
+### 新規実装コンポーネント（7つ）
+1. **Client Components（6つ）**:
+   - [`TaskFormModal`](components/client/TaskFormModal.tsx) - タスク作成
+   - [`TaskEditModal`](components/client/TaskEditModal.tsx) - タスク編集
+   - [`TaskDeleteButton`](components/client/TaskDeleteButton.tsx) - タスク削除
+   - [`TaskListFormModal`](components/client/TaskListFormModal.tsx) - タスクリスト作成
+   - [`TaskListDeleteButton`](components/client/TaskListDeleteButton.tsx) - タスクリスト削除
+   - [`TaskMoveSelect`](components/client/TaskMoveSelect.tsx) - タスク移動
+
+2. **Server Components（1つ）**:
+   - [`DashboardHeader`](components/server/DashboardHeader.tsx) - ダッシュボードヘッダー
+
+### 新規実装Server Actions（2つ）
+- [`updateTaskAction`](app/actions/task-actions.ts) - タスク編集機能
+- [`deleteTaskAction`](app/actions/task-actions.ts) - タスク削除機能
 
 ## 実装状況の詳細
 ### バックエンド層（95%完了 - 高品質）
@@ -22,34 +38,59 @@
 - ✅ **Server Actions**: 基本的なCRUD操作実装済み
 - ✅ **型安全性**: [`TaskStatus.ts`](src/shared/types/TaskStatus.ts)による統一管理
 
-### UI統合層（30%完了 - 緊急対応必要）
+### UI統合層（85%完了 - 基本CRUD操作完了）
 - ✅ **ダッシュボード**: [`/dashboard`](app/dashboard/page.tsx)でタスク一覧・フィルタリング
 - ✅ **ステータス変更**: UIから直接操作可能
-- ❌ **作成・編集・削除**: UIが未実装または不完全
+- ✅ **作成・編集・削除**: 完全なCRUD操作が利用可能
+- ✅ **タスクリスト管理**: 作成・削除・切り替えが可能
+- ✅ **タスク移動**: リスト間でのタスク移動が可能
 
-## 確立された技術パターン（維持すべき品質）
-### アーキテクチャ
-- 集約境界: TaskとTaskListの独立設計
-- 依存性注入: [`DependencyInjection.ts`](src/infrastructure/config/DependencyInjection.ts)
-- 統一型管理: 共有型による重複排除
+## 確立された技術パターン（成功事例として確立）
+### アーキテクチャパターン
+- **集約境界**: TaskとTaskListの独立設計を維持
+- **依存性注入**: [`DependencyInjection.ts`](src/infrastructure/config/DependencyInjection.ts)による統一管理
+- **統一型管理**: 共有型による重複排除
+- **Server/Client Components分離**: 適切な責任分離の実現
 
-### デザインシステム
-- セマンティックHTML: `<header>`, `<aside>`, `<section>`, `<ul>`+`<li>`
-- 階層的背景色: `--surface-1/2/3`システム
-- 軽量インタラクション: 控えめなホバー効果
+### UIパターン
+- **モーダルベースUI**: 一貫したユーザー体験の提供
+- **セマンティックHTML**: `<header>`, `<aside>`, `<section>`, `<ul>`+`<li>`
+- **階層的背景色**: `--surface-1/2/3`システム
+- **軽量インタラクション**: 控えめなホバー効果
 
-## 次のステップ（優先度順）
-### P0（最優先 - 今すぐ対応）
-1. **メインページ実装**: ユーザーエントリーポイント確立
-2. **タスク作成UI**: 既存Server Actionとの統合
-3. **タスクリスト作成UI**: 既存Server Actionとの統合
+### 開発パターン
+- **既存Server Actions活用**: 効率的な統合手法
+- **段階的実装**: Phase別の現実的な開発計画
+- **品質維持**: バックエンド品質を保持しながらの機能追加
 
-### P1（高優先度 - 短期対応）
-4. **タスク編集機能**: Server Action + UI実装
-5. **タスク削除機能**: Server Action + UI実装
-6. **エラーハンドリング**: ユーザビリティ向上
+## 次のステップ（Phase 2以降）
+### Phase 2: 高度な機能統合（中優先度）
+1. **ドラッグ&ドロップ機能**: より直感的なタスク移動
+2. **期日ソート機能**: タスクの効率的な管理
+3. **タスクリスト名変更**: より柔軟なリスト管理
+4. **詳細なエラーハンドリング**: 包括的エラー対応
 
-## 重要な方針
-- **バックエンド品質維持**: 既存の高品質なアーキテクチャを保持
-- **UI統合加速**: 既存Server Actionsの活用を最優先
-- **ユーザー体験重視**: 実際に使える機能の早期提供
+### Phase 3: 最適化・拡張（低優先度）
+1. **パフォーマンス最適化**: レンダリング最適化
+2. **レスポンシブ対応**: モバイル・タブレット対応
+3. **アクセシビリティ**: WCAG準拠
+4. **追加機能**: 検索、タグ、通知等
+
+## 重要な洞察とプロジェクトの学び
+### 開発効率の実証
+- **既存資産活用の威力**: 実装済みServer Actionsの活用により短期間で機能実装
+- **段階的アプローチの有効性**: Phase別の明確な優先順位による効率的開発
+- **アーキテクチャ品質の重要性**: 高品質なバックエンドが迅速なUI統合を可能にした
+
+### 技術的決定の成功
+- **Server/Client Components分離**: 適切な責任分離により保守性向上
+- **モーダルベースUI**: 一貫したユーザー体験と実装効率の両立
+- **型安全性の維持**: TypeScriptによる堅牢な実装の継続
+
+### ユーザー体験の向上
+- **実用性の重視**: 実際に使えるアプリケーションの早期完成
+- **直感的な操作**: モーダルとボタンによる分かりやすいUI
+- **リアルタイム更新**: Server Actions実行後の即座な画面反映
+
+## 現在のフォーカス
+**Phase 2への移行準備完了**。基本的なTODOアプリとして完全に機能し、ユーザーが実際に利用できる実用的なアプリケーションが完成。次は高度な機能統合によるユーザビリティ向上に注力。

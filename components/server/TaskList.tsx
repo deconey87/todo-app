@@ -1,4 +1,5 @@
 import { TaskDto } from '../../src/application/dto/TaskDto';
+import { TaskListDto } from '../../src/application/dto/TaskListDto';
 import { TaskItem } from './TaskItem';
 import { TaskStatusLiteral, TaskStatusConverter } from '../../src/shared/types/TaskStatus';
 
@@ -6,9 +7,10 @@ interface TaskListProps {
   tasks: TaskDto[];
   selectedListId?: string;
   filter?: string;
+  taskLists?: TaskListDto[];
 }
 
-export function TaskList({ tasks, selectedListId, filter }: TaskListProps) {
+export function TaskList({ tasks, selectedListId, filter, taskLists }: TaskListProps) {
   const getTitle = () => {
     if (filter) {
       if (filter === 'TODO' || filter === 'IN_PROGRESS' || filter === 'DONE') {
@@ -39,7 +41,7 @@ export function TaskList({ tasks, selectedListId, filter }: TaskListProps) {
         ) : (
           <ul className="divide-y divide-border">
             {tasks.map((task) => (
-              <TaskItem key={task.id} task={task} />
+              <TaskItem key={task.id} task={task} taskLists={taskLists} />
             ))}
           </ul>
         )}

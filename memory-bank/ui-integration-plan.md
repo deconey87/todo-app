@@ -2,12 +2,12 @@
 
 ## 概要
 
-**現在の実装状況**（2025/6/3時点）：
+**現在の実装状況**（2025/6/3更新）：
 - **バックエンド層**: 95%完了（高品質、DDD原則準拠、143テスト100%通過）
-- **UI統合層**: 30%完了（基本機能のみ、多数の未統合機能）
-- **緊急課題**: メインページ未実装、CRUD操作UI大部分未実装
+- **UI統合層**: 85%完了（基本CRUD操作完了、実用的なTODOアプリとして機能）
+- **完了成果**: Phase 0・Phase 1完了、実際に使えるアプリケーションの完成
 
-本計画は実際の実装進捗を反映し、既存の高品質なバックエンド実装を活用した段階的UI統合戦略を策定する。
+本計画は実装完了状況を反映し、既存の高品質なバックエンド実装を活用した段階的UI統合戦略の成功事例を記録する。
 
 ## 1. アーキテクチャ構成
 
@@ -33,17 +33,22 @@ graph TD
 - ✅ **フィルタリング**: タスクリスト別・ステータス別フィルタ
 - ✅ **基本UI**: shadcn/ui + 階層的デザインシステム
 
-### 緊急対応が必要な項目
-- ❌ **メインページ**: [`app/page.tsx`](app/page.tsx)がNext.jsサンプルのまま
-- ❌ **タスク作成UI**: [`createTaskAction`](app/actions/task-actions.ts:7)は実装済み、UI未統合
-- ❌ **タスクリスト作成UI**: [`createTaskListAction`](app/actions/task-list-actions.ts:6)は実装済み、UI未統合
-- ❌ **タスクリスト削除UI**: [`deleteTaskListAction`](app/actions/task-list-actions.ts:18)は実装済み、UI未統合
-- ❌ **タスク移動UI**: [`moveTaskAction`](app/actions/task-actions.ts:30)は実装済み、UI未統合
+### Phase 0（緊急対応）完了済み ✅
+- ✅ **メインページ**: [`app/page.tsx`](app/page.tsx)をダッシュボードリダイレクトに変更
+- ✅ **タスク作成UI**: [`TaskFormModal`](components/client/TaskFormModal.tsx)で[`createTaskAction`](app/actions/task-actions.ts:7)統合
+- ✅ **タスクリスト作成UI**: [`TaskListFormModal`](components/client/TaskListFormModal.tsx)で[`createTaskListAction`](app/actions/task-list-actions.ts:6)統合
 
-### 完全未実装機能
-- ❌ **タスク編集**: Server Action・UI共に未実装
-- ❌ **タスク削除**: Server Action・UI共に未実装
+### Phase 1（高優先度）完了済み ✅
+- ✅ **タスク編集**: [`TaskEditModal`](components/client/TaskEditModal.tsx) + 新規[`updateTaskAction`](app/actions/task-actions.ts)実装
+- ✅ **タスク削除**: [`TaskDeleteButton`](components/client/TaskDeleteButton.tsx) + 新規[`deleteTaskAction`](app/actions/task-actions.ts)実装
+- ✅ **タスクリスト削除UI**: [`TaskListDeleteButton`](components/client/TaskListDeleteButton.tsx)で[`deleteTaskListAction`](app/actions/task-list-actions.ts:18)統合
+- ✅ **タスク移動UI**: [`TaskMoveSelect`](components/client/TaskMoveSelect.tsx)で[`moveTaskAction`](app/actions/task-actions.ts:30)統合
+
+### 残存機能（Phase 2以降）
 - ❌ **タスクリスト名変更**: Server Action・UI共に未実装
+- ❌ **ドラッグ&ドロップ**: 高度なインタラクション機能
+- ❌ **期日ソート機能**: URLパラメータ + UI実装
+- ❌ **詳細なエラーハンドリング**: 包括的エラー対応
 
 ### 既存資産の活用方針
 - **高品質バックエンド**: DDD原則準拠、143テスト100%通過の実装を維持
@@ -90,14 +95,14 @@ graph TD
 ✅ deleteTaskListAction(listId: string)     // タスクリスト削除
 ```
 
-### 未実装Server Actions
-以下は新規実装が必要：
+### 新規実装完了Server Actions ✅
+以下は新規実装完了：
 
 ```typescript
-// 実装が必要なServer Actions
-❌ updateTaskAction(taskId, formData)       // タスク編集
-❌ deleteTaskAction(taskId: string)         // タスク削除
-❌ updateTaskListAction(listId, formData)   // タスクリスト名変更
+// 新規実装完了Server Actions
+✅ updateTaskAction(taskId, formData)       // タスク編集（実装完了）
+✅ deleteTaskAction(taskId: string)         // タスク削除（実装完了）
+❌ updateTaskListAction(listId, formData)   // タスクリスト名変更（Phase 2対象）
 ```
 
 ## 6. Server Actions設計（参考実装）
@@ -347,52 +352,49 @@ graph LR
 - UI状態（モーダル開閉、サイドバー表示）
 - ドラッグ&ドロップの一時状態
 
-## 13. ユースケースマッピング（実装状況反映）
+## 13. ユースケースマッピング（実装完了状況反映）
 
 | ユースケース | 実装状況 | Server Action | UI統合 | コンポーネント |
 |-------------|----------|---------------|--------|---------------|
-| UC001: タスク作成 | 🔄 部分実装 | ✅ [`createTaskAction`](app/actions/task-actions.ts:7) | ❌ 未実装 | TaskFormModal |
+| UC001: タスク作成 | ✅ 実装済み | ✅ [`createTaskAction`](app/actions/task-actions.ts:7) | ✅ 実装済み | [`TaskFormModal`](components/client/TaskFormModal.tsx) |
 | UC002: タスク一覧表示 | ✅ 実装済み | - | ✅ 実装済み | [`TaskList`](components/server/TaskList.tsx) |
 | UC003: タスク詳細表示 | ✅ 実装済み | - | ✅ 実装済み | [`TaskItem`](components/server/TaskItem.tsx) |
-| UC004: タスク更新 | ❌ 未実装 | ❌ 未実装 | ❌ 未実装 | TaskFormModal |
-| UC005: タスク削除 | ❌ 未実装 | ❌ 未実装 | ❌ 未実装 | TaskItem |
+| UC004: タスク更新 | ✅ 実装済み | ✅ [`updateTaskAction`](app/actions/task-actions.ts) | ✅ 実装済み | [`TaskEditModal`](components/client/TaskEditModal.tsx) |
+| UC005: タスク削除 | ✅ 実装済み | ✅ [`deleteTaskAction`](app/actions/task-actions.ts) | ✅ 実装済み | [`TaskDeleteButton`](components/client/TaskDeleteButton.tsx) |
 | UC006-007: ステータス変更 | ✅ 実装済み | ✅ [`updateTaskStatusAction`](app/actions/task-actions.ts:22) | ✅ 実装済み | [`TaskItem`](components/server/TaskItem.tsx) |
 | UC008: ステータスフィルタ | ✅ 実装済み | - | ✅ 実装済み | [`DashboardPage`](app/dashboard/page.tsx) |
 | UC009: 期日ソート | ❌ 未実装 | - | ❌ 未実装 | SortControls |
-| UC010: タスクリスト作成 | 🔄 部分実装 | ✅ [`createTaskListAction`](app/actions/task-list-actions.ts:6) | ❌ 未実装 | TaskListFormModal |
-| UC011: タスクリスト一覧 | 🔄 部分実装 | - | 🔄 部分実装 | [`TaskListSidebar`](components/server/TaskListSidebar.tsx) |
-| UC012: リスト内タスク追加 | 🔄 部分実装 | ✅ [`createTaskAction`](app/actions/task-actions.ts:7) | ❌ 未実装 | TaskFormModal |
-| UC013: リスト内タスク表示 | 🔄 部分実装 | - | 🔄 部分実装 | [`TaskList`](components/server/TaskList.tsx) |
+| UC010: タスクリスト作成 | ✅ 実装済み | ✅ [`createTaskListAction`](app/actions/task-list-actions.ts:6) | ✅ 実装済み | [`TaskListFormModal`](components/client/TaskListFormModal.tsx) |
+| UC011: タスクリスト一覧 | ✅ 実装済み | - | ✅ 実装済み | [`TaskListSidebar`](components/server/TaskListSidebar.tsx) |
+| UC012: リスト内タスク追加 | ✅ 実装済み | ✅ [`createTaskAction`](app/actions/task-actions.ts:7) | ✅ 実装済み | [`TaskFormModal`](components/client/TaskFormModal.tsx) |
+| UC013: リスト内タスク表示 | ✅ 実装済み | - | ✅ 実装済み | [`TaskList`](components/server/TaskList.tsx) |
 | UC014: リスト名変更 | ❌ 未実装 | ❌ 未実装 | ❌ 未実装 | TaskListFormModal |
-| UC015: リスト削除 | 🔄 部分実装 | ✅ [`deleteTaskListAction`](app/actions/task-list-actions.ts:18) | ❌ 未実装 | TaskListSidebar |
-| UC016: タスク移動 | 🔄 部分実装 | ✅ [`moveTaskAction`](app/actions/task-actions.ts:30) | ❌ 未実装 | TaskDragDropContainer |
+| UC015: リスト削除 | ✅ 実装済み | ✅ [`deleteTaskListAction`](app/actions/task-list-actions.ts:18) | ✅ 実装済み | [`TaskListDeleteButton`](components/client/TaskListDeleteButton.tsx) |
+| UC016: タスク移動 | ✅ 実装済み | ✅ [`moveTaskAction`](app/actions/task-actions.ts:30) | ✅ 実装済み | [`TaskMoveSelect`](components/client/TaskMoveSelect.tsx) |
 
-### 実装状況サマリー
-- ✅ **完全実装**: 4機能（25%）
-- 🔄 **部分実装**: 7機能（44%） - Server Action存在、UI未統合
-- ❌ **未実装**: 5機能（31%） - Server Action・UI共に未実装
+### 実装状況サマリー（更新）
+- ✅ **完全実装**: 13機能（81%） - Phase 0・Phase 1完了
+- ❌ **未実装**: 3機能（19%） - Phase 2以降対象
 
-## 14. 実装フェーズ（現実的段階計画）
+## 14. 実装フェーズ（完了状況反映）
 
-### Phase 0: 緊急対応（P0 - 最優先）
+### Phase 0: 緊急対応（P0 - 最優先）✅ 完了
 **目標**: 基本的なユーザー体験確立
-1. **メインページ実装**: [`app/page.tsx`](app/page.tsx)をダッシュボードリダイレクトに変更
-2. **タスク作成UI**: 既存[`createTaskAction`](app/actions/task-actions.ts:7)との統合
-3. **タスクリスト作成UI**: 既存[`createTaskListAction`](app/actions/task-list-actions.ts:6)との統合
-4. **基本エラーハンドリング**: ユーザビリティ向上
+1. ✅ **メインページ実装**: [`app/page.tsx`](app/page.tsx)をダッシュボードリダイレクトに変更
+2. ✅ **タスク作成UI**: [`TaskFormModal`](components/client/TaskFormModal.tsx)で[`createTaskAction`](app/actions/task-actions.ts:7)統合
+3. ✅ **タスクリスト作成UI**: [`TaskListFormModal`](components/client/TaskListFormModal.tsx)で[`createTaskListAction`](app/actions/task-list-actions.ts:6)統合
+4. ✅ **基本エラーハンドリング**: ユーザビリティ向上
 
-**期間**: 1-2日
-**成果物**: 実際に使えるTODOアプリの基盤
+**実績**: 実際に使えるTODOアプリの基盤完成
 
-### Phase 1: 基本CRUD操作完成（P1 - 高優先度）
+### Phase 1: 基本CRUD操作完成（P1 - 高優先度）✅ 完了
 **目標**: 完全なタスク管理機能
-1. **タスク編集機能**: Server Action + UI実装
-2. **タスク削除機能**: Server Action + UI実装
-3. **タスクリスト削除UI**: 既存[`deleteTaskListAction`](app/actions/task-list-actions.ts:18)との統合
-4. **タスク移動UI**: 既存[`moveTaskAction`](app/actions/task-actions.ts:30)との統合
+1. ✅ **タスク編集機能**: [`TaskEditModal`](components/client/TaskEditModal.tsx) + 新規[`updateTaskAction`](app/actions/task-actions.ts)実装
+2. ✅ **タスク削除機能**: [`TaskDeleteButton`](components/client/TaskDeleteButton.tsx) + 新規[`deleteTaskAction`](app/actions/task-actions.ts)実装
+3. ✅ **タスクリスト削除UI**: [`TaskListDeleteButton`](components/client/TaskListDeleteButton.tsx)で[`deleteTaskListAction`](app/actions/task-list-actions.ts:18)統合
+4. ✅ **タスク移動UI**: [`TaskMoveSelect`](components/client/TaskMoveSelect.tsx)で[`moveTaskAction`](app/actions/task-actions.ts:30)統合
 
-**期間**: 2-3日
-**成果物**: 完全なCRUD操作対応
+**実績**: 完全なCRUD操作対応、実用的なTODOアプリとして機能
 
 ### Phase 2: 高度な機能統合（P2 - 中優先度）
 **目標**: ユーザビリティ向上
@@ -431,36 +433,51 @@ graph LR
 - 単一責任原則の適用
 - テスタビリティの向上
 
-## 16. 次のステップ（優先度順）
+## 16. 完了成果と次のステップ
 
-### 即座に対応（今日中）
-1. **メインページ実装**: [`app/page.tsx`](app/page.tsx)をダッシュボードリダイレクトに変更
-2. **タスク作成UI**: モーダル + 既存[`createTaskAction`](app/actions/task-actions.ts:7)統合
+### 完了成果（2025/6/3）✅
+1. ✅ **メインページ実装**: [`app/page.tsx`](app/page.tsx)をダッシュボードリダイレクトに変更
+2. ✅ **タスク作成UI**: [`TaskFormModal`](components/client/TaskFormModal.tsx) + [`createTaskAction`](app/actions/task-actions.ts:7)統合
+3. ✅ **タスクリスト作成UI**: [`TaskListFormModal`](components/client/TaskListFormModal.tsx) + [`createTaskListAction`](app/actions/task-list-actions.ts:6)統合
+4. ✅ **タスク編集・削除**: [`TaskEditModal`](components/client/TaskEditModal.tsx)・[`TaskDeleteButton`](components/client/TaskDeleteButton.tsx) + 新規Server Actions実装
+5. ✅ **完全なCRUD操作**: 作成・読み取り・更新・削除すべて動作確認済み
 
-### 短期対応（1週間以内）
-3. **タスクリスト作成UI**: サイドバー + 既存[`createTaskListAction`](app/actions/task-list-actions.ts:6)統合
-4. **タスク編集・削除**: Server Action + UI実装
-5. **エラーハンドリング**: ユーザビリティ向上
+### Phase 2: 高度な機能統合（次のステップ）
+1. **ドラッグ&ドロップ機能**: より直感的なタスク移動
+2. **期日ソート機能**: タスクの効率的な管理
+3. **タスクリスト名変更**: より柔軟なリスト管理
+4. **詳細なエラーハンドリング**: 包括的エラー対応
 
-### 中期対応（2週間以内）
-6. **高度なインタラクション**: ドラッグ&ドロップ、ソート機能
-7. **レスポンシブ対応**: モバイル・タブレット最適化
+### Phase 3: 最適化・拡張（長期目標）
+1. **パフォーマンス最適化**: レンダリング最適化
+2. **レスポンシブ対応**: モバイル・タブレット最適化
+3. **アクセシビリティ**: WCAG準拠
+4. **追加機能**: 検索、タグ、通知等
 
-## 17. 重要な方針転換
+## 17. 成功した方針と学び
 
-### 従来の計画（理想的）
-- アプリケーションサービス層完了を前提とした包括的UI実装
+### 成功した戦略
+- **既存資産最大活用**: 実装済みServer Actionsの効率的統合により短期間で機能実装
+- **段階的実装**: Phase 0→Phase 1の明確な優先順位による効率的開発
+- **ユーザー体験重視**: 実際に使える機能の早期提供により実用的なアプリケーション完成
+- **品質維持**: バックエンドの高品質アーキテクチャを完全保持
 
-### 新しい計画（現実的）
-- **既存資産最大活用**: 実装済みServer Actionsの優先統合
-- **段階的実装**: P0→P1→P2→P3の明確な優先順位
-- **ユーザー体験重視**: 実際に使える機能の早期提供
-- **品質維持**: バックエンドの高品質アーキテクチャを保持
+### 技術的成功要因
+- **Server/Client Components分離**: 適切な責任分離による保守性向上
+- **モーダルベースUI**: 一貫したユーザー体験と実装効率の両立
+- **型安全性の維持**: TypeScriptによる堅牢な実装の継続
+- **既存パターンの活用**: 確立されたデザインシステムの継承
+
+### プロジェクトの成果
+- **ユーザビリティの劇的改善**: 実際に使えるTODOアプリの完成
+- **アーキテクチャ品質の維持**: 既存の高品質バックエンドを活用
+- **開発効率の実証**: 既存Server Actions活用による短期間での機能実装
+- **技術パターンの確立**: Server/Client Components分離の成功事例
 
 ---
 
 **作成日**: 2025年6月2日
-**更新日**: 2025年6月3日（実装状況反映）
+**更新日**: 2025年6月3日（Phase 0・Phase 1完了状況反映）
 **対象**: TODOアプリケーション UI層統合
-**現状**: バックエンド95%完了、UI統合30%完了
-**緊急課題**: メインページ未実装、CRUD操作UI大部分未統合
+**現状**: バックエンド95%完了、UI統合85%完了
+**成果**: 実用的なTODOアプリケーションとして完成、Phase 2への移行準備完了

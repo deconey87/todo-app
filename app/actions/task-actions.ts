@@ -27,10 +27,32 @@ export async function updateTaskStatusAction(taskId: string, status: string) {
   revalidatePath('/dashboard');
 }
 
+export async function deleteTaskAction(taskId: string) {
+  const container = await createDependencyContainer();
+  const taskService = container.taskApplicationService;
+  
+  await taskService.deleteTask(taskId);
+  revalidatePath('/dashboard');
+}
+
 export async function moveTaskAction(taskId: string, newListId: string) {
   const container = await createDependencyContainer();
   const taskService = container.taskApplicationService;
   
   await taskService.moveTaskToList(taskId, newListId);
   revalidatePath('/dashboard');
+}
+
+export async function updateTaskAction(taskId: string, formData: FormData) {
+  const container = await createDependencyContainer();
+  const taskService = container.taskApplicationService;
+  
+  const result = await taskService.updateTask(taskId, {
+    title: formData.get('title') as string,
+    description: formData.get('description') as string,
+    dueDate: formData.get('dueDate') as string,
+  });
+  
+  revalidatePath('/dashboard');
+  return result;
 }

@@ -1,13 +1,18 @@
 import { Button } from '../ui/button';
 import { TaskDto } from '../../src/application/dto/TaskDto';
+import { TaskListDto } from '../../src/application/dto/TaskListDto';
 import { updateTaskStatusAction } from '../../app/actions/task-actions';
 import { TaskStatusLiteral, TaskStatusConverter } from '../../src/shared/types/TaskStatus';
+import { TaskMoveSelect } from '../client/TaskMoveSelect';
+import { TaskEditModal } from '../client/TaskEditModal';
+import { TaskDeleteButton } from '../client/TaskDeleteButton';
 
 interface TaskItemProps {
   task: TaskDto;
+  taskLists?: TaskListDto[];
 }
 
-export function TaskItem({ task }: TaskItemProps) {
+export function TaskItem({ task, taskLists }: TaskItemProps) {
   const getStatusColor = (status: TaskStatusLiteral) => {
     const label = TaskStatusConverter.getLabel(status);
     switch (label) {
@@ -60,6 +65,21 @@ export function TaskItem({ task }: TaskItemProps) {
                 {nextStatus.label}
               </Button>
             </form>
+            
+            <TaskEditModal task={task} />
+            
+            <TaskDeleteButton
+              taskId={task.id}
+              taskTitle={task.title}
+            />
+            
+            {taskLists && taskLists.length > 1 && (
+              <TaskMoveSelect
+                taskId={task.id}
+                currentListId={task.listId}
+                taskLists={taskLists}
+              />
+            )}
           </div>
         </div>
         
