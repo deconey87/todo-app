@@ -48,16 +48,16 @@ describe('TaskStatus共通型定義', () => {
   });
 
   describe('TaskStatusEnum', () => {
-    it('正しい日本語値を持つ', () => {
-      expect(TaskStatusEnum.TODO).toBe('未着手');
-      expect(TaskStatusEnum.IN_PROGRESS).toBe('進行中');
-      expect(TaskStatusEnum.DONE).toBe('完了');
+    it('正しい英語値を持つ', () => {
+      expect(TaskStatusEnum.TODO).toBe('TODO');
+      expect(TaskStatusEnum.IN_PROGRESS).toBe('IN_PROGRESS');
+      expect(TaskStatusEnum.DONE).toBe('DONE');
     });
 
-    it('ラベルと一致する', () => {
-      expect(TaskStatusEnum.TODO).toBe(TASK_STATUS_LABELS.TODO);
-      expect(TaskStatusEnum.IN_PROGRESS).toBe(TASK_STATUS_LABELS.IN_PROGRESS);
-      expect(TaskStatusEnum.DONE).toBe(TASK_STATUS_LABELS.DONE);
+    it('TASK_STATUS_VALUESと一致する', () => {
+      expect(TaskStatusEnum.TODO).toBe(TASK_STATUS_VALUES[0]);
+      expect(TaskStatusEnum.IN_PROGRESS).toBe(TASK_STATUS_VALUES[1]);
+      expect(TaskStatusEnum.DONE).toBe(TASK_STATUS_VALUES[2]);
     });
   });
 

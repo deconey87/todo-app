@@ -36,10 +36,13 @@ export async function createTaskAction(prevState: ActionState | null, formData: 
   }
 }
 
-export async function updateTaskStatusAction(taskId: string, status: string): Promise<ActionState> {
+export async function updateTaskStatusAction(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
   try {
     const container = await createDependencyContainer();
     const taskService = container.taskApplicationService;
+    
+    const taskId = formData.get('taskId') as string;
+    const status = formData.get('status') as string;
     
     await taskService.changeTaskStatus(taskId, status as TaskStatusLiteral);
     revalidatePath('/dashboard');
@@ -52,6 +55,24 @@ export async function updateTaskStatusAction(taskId: string, status: string): Pr
       success: false,
       error: error instanceof Error ? error.message : 'ステータスの更新に失敗しました'
     };
+  }
+}
+
+// 通常のform action用のステータス更新関数
+export async function updateTaskStatusFormAction(formData: FormData): Promise<void> {
+  try {
+    const container = await createDependencyContainer();
+    const taskService = container.taskApplicationService;
+    
+    const taskId = formData.get('taskId') as string;
+    const status = formData.get('status') as string;
+    
+    await taskService.changeTaskStatus(taskId, status as TaskStatusLiteral);
+    revalidatePath('/dashboard');
+  } catch (error) {
+    console.error('ステータス更新エラー:', error);
+    // Server Componentでは例外を投げる
+    throw error;
   }
 }
 

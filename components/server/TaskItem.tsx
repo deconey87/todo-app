@@ -1,7 +1,7 @@
 import { Button } from '../ui/button';
 import { TaskDto } from '../../src/application/dto/TaskDto';
 import { TaskListDto } from '../../src/application/dto/TaskListDto';
-import { updateTaskStatusAction } from '../../app/actions/task-actions';
+import { updateTaskStatusFormAction } from '../../app/actions/task-actions';
 import { TaskStatusLiteral, TaskStatusConverter } from '../../src/shared/types/TaskStatus';
 import { TaskMoveSelect } from '../client/TaskMoveSelect';
 import { TaskEditModal } from '../client/TaskEditModal';
@@ -60,7 +60,9 @@ export function TaskItem({ task, taskLists }: TaskItemProps) {
           )}
 
           <div className="flex items-center gap-3">
-            <form action={updateTaskStatusAction.bind(null, task.id, nextStatus.value)}>
+            <form action={updateTaskStatusFormAction}>
+              <input type="hidden" name="taskId" value={task.id} />
+              <input type="hidden" name="status" value={nextStatus.value} />
               <Button type="submit" size="sm" variant="outline">
                 {nextStatus.label}
               </Button>

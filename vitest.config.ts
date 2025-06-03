@@ -7,5 +7,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    env: {
+      USE_IN_MEMORY_DB: "true",
+    },
   },
 });

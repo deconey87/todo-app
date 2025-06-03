@@ -1,7 +1,7 @@
 import { createDependencyContainer } from '../src/infrastructure/config/DependencyInjection';
 
 async function seedData() {
-  const container = createDependencyContainer();
+  const container = await createDependencyContainer();
   const taskListService = container.taskListApplicationService;
   const taskService = container.taskApplicationService;
 
