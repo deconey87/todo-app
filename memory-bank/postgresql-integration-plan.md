@@ -122,22 +122,31 @@ services:
 ```typescript
 // src/infrastructure/config/DependencyInjection.ts
 export const createRepositories = () => {
-  const usePostgreSQL = process.env.USE_POSTGRESQL === 'true';
+  const useInMemoryDB = process.env.USE_IN_MEMORY_DB === 'true';
   
-  if (usePostgreSQL) {
+  if (useInMemoryDB) {
+    return {
+      taskRepository: new InMemoryTaskRepository(),
+      taskListRepository: new InMemoryTaskListRepository(),
+    };
+  } else {
     const pool = createDatabasePool();
     return {
       taskRepository: new PostgreSQLTaskRepository(pool),
       taskListRepository: new PostgreSQLTaskListRepository(pool),
     };
-  } else {
-    return {
-      taskRepository: new InMemoryTaskRepository(),
-      taskListRepository: new InMemoryTaskListRepository(),
-    };
   }
 };
 ```
+
+**環境変数設定:**
+- `USE_IN_MEMORY_DB=true` → インメモリDB使用
+- それ以外（`false`または未設定） → PostgreSQL使用
+
+**動作仕様:**
+- デフォルトでPostgreSQLを使用
+- テストや開発時に`USE_IN_MEMORY_DB=true`を設定してインメモリDBに切り替え可能
+- シンプルで理解しやすい設定
 
 #### 2. 手動統合確認
 PostgreSQL統合の動作確認は開発時の手動テストで実施：

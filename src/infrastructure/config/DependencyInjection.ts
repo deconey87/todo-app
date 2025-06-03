@@ -14,22 +14,23 @@ import { createDatabasePool } from './DatabaseConfig';
 
 /**
  * 環境変数に基づいてリポジトリを作成する関数
- * USE_POSTGRESQL=trueの場合はPostgreSQLアダプターを使用
- * それ以外の場合はインメモリリポジトリを使用（デフォルト）
+ * USE_IN_MEMORY_DB=true の場合のみインメモリDB使用
+ * それ以外はPostgreSQL使用
  */
 export const createRepositories = () => {
-  const usePostgreSQL = process.env.USE_POSTGRESQL === 'true';
-  
-  if (usePostgreSQL) {
+  // シンプルな環境変数判定
+  const useInMemoryDB = process.env.USE_IN_MEMORY_DB === 'true';
+
+  if (useInMemoryDB) {
+    return {
+      taskRepository: new InMemoryTaskRepository(),
+      taskListRepository: new InMemoryTaskListRepository(),
+    };
+  } else {
     const pool = createDatabasePool();
     return {
       taskRepository: new PostgreSQLTaskRepository(pool),
       taskListRepository: new PostgreSQLTaskListRepository(pool),
-    };
-  } else {
-    return {
-      taskRepository: new InMemoryTaskRepository(),
-      taskListRepository: new InMemoryTaskListRepository(),
     };
   }
 };
