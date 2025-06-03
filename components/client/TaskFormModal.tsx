@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useActionState, useEffect } from 'react';
-import { createTaskAction, type ActionState } from '@/app/actions/task-actions';
+import { createTaskAction, createTaskWithNewListAction, type ActionState } from '@/app/actions/task-actions';
 import { TaskListDto } from '@/src/application/dto/TaskListDto';
 import {
   Dialog,
@@ -32,6 +32,9 @@ interface TaskFormModalProps {
 export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormModalProps) {
   const [open, setOpen] = useState(false);
   const [selectedList, setSelectedList] = useState<string>(selectedListId || '');
+  const [newListName, setNewListName] = useState<string>('');
+  const hasTaskLists = taskLists.length > 0;
+  
   const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
     createTaskAction,
     null
@@ -42,10 +45,11 @@ export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormMo
     if (state?.success) {
       setOpen(false);
       setSelectedList(selectedListId || '');
+      setNewListName('');
     }
   }, [state?.success, selectedListId]);
 
-  const handleSubmit = (formData: FormData) => {
+  const handleSubmit = async (formData: FormData) => {
     // バリデーション
     const title = formData.get('title') as string;
 
@@ -54,13 +58,31 @@ export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormMo
       return;
     }
 
-    if (!selectedList) {
-      return;
+    if (hasTaskLists) {
+      // 既存のタスクリストがある場合：リスト選択が必須
+      if (!selectedList) {
+        return;
+      }
+      // selectedListをformDataに追加
+      formData.set('listId', selectedList);
+      formAction(formData);
+    } else {
+      // タスクリストがない場合：新規リスト名が必須
+      if (!newListName?.trim()) {
+        return;
+      }
+      // newListNameをformDataに追加
+      formData.set('listName', newListName);
+      // 新しいリストとタスクを作成するアクションを直接呼び出し
+      const result = await createTaskWithNewListAction(null, formData);
+      if (result.success) {
+        setOpen(false);
+        setSelectedList('');
+        setNewListName('');
+        // ページをリロードして最新の状態を反映
+        window.location.reload();
+      }
     }
-
-    // selectedListをformDataに追加
-    formData.set('listId', selectedList);
-    formAction(formData);
   };
 
   const defaultTrigger = (
@@ -122,25 +144,43 @@ export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormMo
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="listId">タスクリスト *</Label>
-            <Select
-              value={selectedList}
-              onValueChange={setSelectedList}
-              disabled={isPending}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="タスクリストを選択してください" />
-              </SelectTrigger>
-              <SelectContent>
-                {taskLists.map((list) => (
-                  <SelectItem key={list.id} value={list.id}>
-                    {list.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {hasTaskLists ? (
+            <div className="space-y-2">
+              <Label htmlFor="listId">タスクリスト *</Label>
+              <Select
+                value={selectedList}
+                onValueChange={setSelectedList}
+                disabled={isPending}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="タスクリストを選択してください" />
+                </SelectTrigger>
+                <SelectContent>
+                  {taskLists.map((list) => (
+                    <SelectItem key={list.id} value={list.id}>
+                      {list.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="listName">新しいリスト名 *</Label>
+              <Input
+                id="listName"
+                name="listName"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                placeholder="例: 仕事のタスク"
+                required
+                disabled={isPending}
+              />
+              <p className="text-sm text-muted-foreground">
+                タスクリストが存在しないため、新しいリストを作成してタスクを追加します。
+              </p>
+            </div>
+          )}
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button
@@ -152,7 +192,12 @@ export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormMo
               キャンセル
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? '作成中...' : 'タスクを作成'}
+              {isPending
+                ? '作成中...'
+                : hasTaskLists
+                  ? 'タスクを作成'
+                  : 'リストとタスクを作成'
+              }
             </Button>
           </div>
         </form>

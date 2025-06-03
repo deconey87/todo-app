@@ -118,3 +118,43 @@ export async function updateTaskAction(prevState: ActionState | null, formData: 
     };
   }
 }
+
+export async function createTaskWithNewListAction(
+  prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const container = await createDependencyContainer();
+    const taskListService = container.taskListApplicationService;
+    const taskService = container.taskApplicationService;
+    
+    const listName = formData.get('listName') as string;
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const dueDate = formData.get('dueDate') as string;
+    
+    // 1. 新しいタスクリストを作成
+    const newList = await taskListService.createTaskList({
+      name: listName,
+    });
+    
+    // 2. 作成されたリストにタスクを追加
+    await taskService.createTask({
+      title,
+      description,
+      dueDate,
+      listId: newList.id,
+    });
+    
+    revalidatePath('/dashboard');
+    return {
+      success: true,
+      message: 'タスクリストとタスクが正常に作成されました'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'タスクリストとタスクの作成に失敗しました'
+    };
+  }
+}
