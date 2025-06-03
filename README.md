@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TODO アプリケーション
 
-## Getting Started
+これは [Next.js](https://nextjs.org) を利用して構築されたTODOアプリケーションです。
 
-First, run the development server:
+## VSCode Devcontainerでの起動方法
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+このプロジェクトはVSCodeのDevcontainerを利用して開発環境を構築することを推奨しています。
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 前提条件
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+*   [Docker Desktop](https://www.docker.com/products/docker-desktop/) がインストールされていること。
+*   [Visual Studio Code](https://code.visualstudio.com/) がインストールされていること。
+*   VSCode拡張機能「[Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)」がインストールされていること。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 起動手順
 
-## Learn More
+1.  このリポジトリをローカルにクローンします。
+    ```bash
+    git clone https://your-repository-url/todo-app.git
+    cd todo-app
+    ```
+2.  VSCodeでクローンしたプロジェクトフォルダを開きます。
+3.  VSCodeの左下にある緑色のアイコンをクリックするか、コマンドパレット（`Ctrl+Shift+P` または `Cmd+Shift+P`）を開いて `Remote-Containers: Reopen in Container` を選択します。
+4.  コンテナのビルドと起動が完了するまで待ちます。
+5.  コンテナ内のターミナルで以下のコマンドを実行して開発サーバーを起動します。
+    ```bash
+    npm run dev
+    ```
+6.  ブラウザで [http://localhost:3000](http://localhost:3000) を開くとアプリケーションが表示されます。
 
-To learn more about Next.js, take a look at the following resources:
+### 初期データについて
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+開発環境を起動すると、初期データとしていくつかのタスクリストとタスクが自動的に投入されます。（もし、初期データ投入スクリプトやマイグレーションに関する情報があれば、ここに追記してください。例えば、`docker-compose.yml` でDBサービスが定義されており、初期化スクリプトが実行される場合など。）
