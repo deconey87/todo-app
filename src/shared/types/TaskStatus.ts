@@ -25,9 +25,9 @@ export const TASK_STATUS_LABELS = {
 
 // ドメイン層との互換性のためのEnum定義
 export enum TaskStatusEnum {
-  TODO = '未着手',
-  IN_PROGRESS = '進行中',
-  DONE = '完了'
+  TODO = 'TODO',
+  IN_PROGRESS = 'IN_PROGRESS',
+  DONE = 'DONE'
 }
 
 /**

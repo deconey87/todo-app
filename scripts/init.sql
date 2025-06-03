@@ -13,7 +13,7 @@ CREATE TABLE tasks (
   id UUID PRIMARY KEY,
   title VARCHAR(100) NOT NULL,
   description TEXT,
-  status VARCHAR(20) NOT NULL CHECK (status IN ('TODO', 'IN_PROGRESS', 'COMPLETED')),
+  status VARCHAR(20) NOT NULL CHECK (status IN ('TODO', 'IN_PROGRESS', 'DONE')),
   due_date TIMESTAMP,
   task_list_id UUID NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
