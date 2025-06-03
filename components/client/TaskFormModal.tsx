@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react';
-import { createTaskAction } from '@/app/actions/task-actions';
+import { useState, useActionState, useEffect } from 'react';
+import { createTaskAction, type ActionState } from '@/app/actions/task-actions';
 import { TaskListDto } from '@/src/application/dto/TaskListDto';
 import {
   Dialog,
@@ -31,44 +31,36 @@ interface TaskFormModalProps {
 
 export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormModalProps) {
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedList, setSelectedList] = useState<string>(selectedListId || '');
+  const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
+    createTaskAction,
+    null
+  );
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const formData = new FormData(event.currentTarget);
-      
-      // バリデーション
-      const title = formData.get('title') as string;
-
-      if (!title?.trim()) {
-        throw new Error('タスクタイトルは必須です');
-      }
-
-      if (!selectedList) {
-        throw new Error('タスクリストを選択してください');
-      }
-
-      // selectedListをformDataに追加
-      formData.set('listId', selectedList);
-
-      await createTaskAction(formData);
+  // 成功時にモーダルを閉じてフォームをリセット
+  useEffect(() => {
+    if (state?.success) {
       setOpen(false);
       setSelectedList(selectedListId || '');
-      
-      // フォームをリセット
-      const form = event.currentTarget;
-      form.reset();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'タスクの作成に失敗しました');
-    } finally {
-      setIsSubmitting(false);
     }
+  }, [state?.success, selectedListId]);
+
+  const handleSubmit = (formData: FormData) => {
+    // バリデーション
+    const title = formData.get('title') as string;
+
+    if (!title?.trim()) {
+      // クライアントサイドバリデーションエラーは手動で状態を設定
+      return;
+    }
+
+    if (!selectedList) {
+      return;
+    }
+
+    // selectedListをformDataに追加
+    formData.set('listId', selectedList);
+    formAction(formData);
   };
 
   const defaultTrigger = (
@@ -91,10 +83,10 @@ export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormMo
           </DialogDescription>
         </DialogHeader>
         
-        <form id="task-form" onSubmit={handleSubmit} className="space-y-4">
-          {error && (
+        <form id="task-form" action={handleSubmit} className="space-y-4">
+          {state?.error && (
             <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-              {error}
+              {state.error}
             </div>
           )}
           
@@ -105,7 +97,7 @@ export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormMo
               name="title"
               placeholder="例: プロジェクト資料の作成"
               required
-              disabled={isSubmitting}
+              disabled={isPending}
             />
           </div>
 
@@ -116,7 +108,7 @@ export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormMo
               name="description"
               placeholder="タスクの詳細な説明を入力してください（任意）"
               rows={3}
-              disabled={isSubmitting}
+              disabled={isPending}
             />
           </div>
 
@@ -126,7 +118,7 @@ export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormMo
               id="dueDate"
               name="dueDate"
               type="date"
-              disabled={isSubmitting}
+              disabled={isPending}
             />
           </div>
 
@@ -135,7 +127,7 @@ export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormMo
             <Select
               value={selectedList}
               onValueChange={setSelectedList}
-              disabled={isSubmitting}
+              disabled={isPending}
             >
               <SelectTrigger>
                 <SelectValue placeholder="タスクリストを選択してください" />
@@ -155,12 +147,12 @@ export function TaskFormModal({ taskLists, selectedListId, trigger }: TaskFormMo
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              disabled={isSubmitting}
+              disabled={isPending}
             >
               キャンセル
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? '作成中...' : 'タスクを作成'}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? '作成中...' : 'タスクを作成'}
             </Button>
           </div>
         </form>

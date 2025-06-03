@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useActionState, useEffect, startTransition } from 'react';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { deleteTaskListAction } from '../../app/actions/task-list-actions';
+import { deleteTaskListAction, type ActionState } from '../../app/actions/task-list-actions';
 
 interface TaskListDeleteButtonProps {
   listId: string;
@@ -12,26 +12,29 @@ interface TaskListDeleteButtonProps {
 
 export function TaskListDeleteButton({ listId, listName }: TaskListDeleteButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [state, formAction, isPending] = useActionState<ActionState | null, string>(
+    deleteTaskListAction,
+    null
+  );
 
-  const handleDelete = async () => {
-    try {
-      setIsDeleting(true);
-      await deleteTaskListAction(listId);
+  // 成功時にモーダルを閉じる
+  useEffect(() => {
+    if (state?.success) {
       setIsOpen(false);
-    } catch (error) {
-      console.error('タスクリストの削除に失敗しました:', error);
-      // TODO: エラートーストを表示
-    } finally {
-      setIsDeleting(false);
     }
+  }, [state?.success]);
+
+  const handleDelete = () => {
+    startTransition(() => {
+      formAction(listId);
+    });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="sm"
           className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/30"
         >
@@ -45,20 +48,25 @@ export function TaskListDeleteButton({ listId, listName }: TaskListDeleteButtonP
             「{listName}」を削除しますか？このタスクリストに含まれるすべてのタスクも削除されます。この操作は取り消せません。
           </DialogDescription>
         </DialogHeader>
+        {state?.error && (
+          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+            {state.error}
+          </div>
+        )}
         <DialogFooter>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setIsOpen(false)}
-            disabled={isDeleting}
+            disabled={isPending}
           >
             キャンセル
           </Button>
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             onClick={handleDelete}
-            disabled={isDeleting}
+            disabled={isPending}
           >
-            {isDeleting ? '削除中...' : '削除'}
+            {isPending ? '削除中...' : '削除'}
           </Button>
         </DialogFooter>
       </DialogContent>

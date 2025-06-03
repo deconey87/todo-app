@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react';
-import { createTaskListAction } from '@/app/actions/task-list-actions';
+import { useState, useActionState, useEffect } from 'react';
+import { createTaskListAction, type ActionState } from '@/app/actions/task-list-actions';
 import {
   Dialog,
   DialogContent,
@@ -20,36 +20,32 @@ interface TaskListFormModalProps {
 
 export function TaskListFormModal({ trigger }: TaskListFormModalProps) {
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
+    createTaskListAction,
+    null
+  );
 
-  const handleSubmit = async (formData: FormData) => {
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      // バリデーション
-      const name = formData.get('name') as string;
-
-      if (!name?.trim()) {
-        throw new Error('タスクリスト名は必須です');
-      }
-
-      if (name.trim().length > 50) {
-        throw new Error('タスクリスト名は50文字以内で入力してください');
-      }
-
-      await createTaskListAction(formData);
+  // 成功時にモーダルを閉じてフォームをリセット
+  useEffect(() => {
+    if (state?.success) {
       setOpen(false);
-      
-      // フォームをリセット
-      const form = document.getElementById('task-list-form') as HTMLFormElement;
-      form?.reset();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'タスクリストの作成に失敗しました');
-    } finally {
-      setIsSubmitting(false);
     }
+  }, [state?.success]);
+
+  const handleSubmit = (formData: FormData) => {
+    // バリデーション
+    const name = formData.get('name') as string;
+
+    if (!name?.trim()) {
+      // クライアントサイドバリデーションエラーは手動で状態を設定
+      return;
+    }
+
+    if (name.trim().length > 50) {
+      return;
+    }
+
+    formAction(formData);
   };
 
   const defaultTrigger = (
@@ -73,9 +69,9 @@ export function TaskListFormModal({ trigger }: TaskListFormModalProps) {
         </DialogHeader>
         
         <form id="task-list-form" action={handleSubmit} className="space-y-4">
-          {error && (
+          {state?.error && (
             <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-              {error}
+              {state.error}
             </div>
           )}
           
@@ -86,7 +82,7 @@ export function TaskListFormModal({ trigger }: TaskListFormModalProps) {
               name="name"
               placeholder="例: 仕事のタスク、個人プロジェクト"
               required
-              disabled={isSubmitting}
+              disabled={isPending}
               maxLength={50}
             />
             <p className="text-xs text-muted-foreground">
@@ -99,12 +95,12 @@ export function TaskListFormModal({ trigger }: TaskListFormModalProps) {
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              disabled={isSubmitting}
+              disabled={isPending}
             >
               キャンセル
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? '作成中...' : 'リストを作成'}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? '作成中...' : 'リストを作成'}
             </Button>
           </div>
         </form>

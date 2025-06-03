@@ -4,55 +4,117 @@ import { createDependencyContainer } from '../../src/infrastructure/config/Depen
 import { revalidatePath } from 'next/cache';
 import { TaskStatusLiteral } from '../../src/shared/types/TaskStatus';
 
-export async function createTaskAction(formData: FormData) {
-  const container = await createDependencyContainer();
-  const taskService = container.taskApplicationService;
-  
-  const result = await taskService.createTask({
-    title: formData.get('title') as string,
-    description: formData.get('description') as string,
-    dueDate: formData.get('dueDate') as string,
-    listId: formData.get('listId') as string,
-  });
-  
-  revalidatePath('/dashboard');
-  return result;
+// useActionState対応の標準化された戻り値型
+export type ActionState = {
+  success: boolean;
+  error?: string;
+  message?: string;
+};
+
+export async function createTaskAction(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
+  try {
+    const container = await createDependencyContainer();
+    const taskService = container.taskApplicationService;
+    
+    await taskService.createTask({
+      title: formData.get('title') as string,
+      description: formData.get('description') as string,
+      dueDate: formData.get('dueDate') as string,
+      listId: formData.get('listId') as string,
+    });
+    
+    revalidatePath('/dashboard');
+    return {
+      success: true,
+      message: 'タスクが正常に作成されました'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'タスクの作成に失敗しました'
+    };
+  }
 }
 
-export async function updateTaskStatusAction(taskId: string, status: string) {
-  const container = await createDependencyContainer();
-  const taskService = container.taskApplicationService;
-  
-  await taskService.changeTaskStatus(taskId, status as TaskStatusLiteral);
-  revalidatePath('/dashboard');
+export async function updateTaskStatusAction(taskId: string, status: string): Promise<ActionState> {
+  try {
+    const container = await createDependencyContainer();
+    const taskService = container.taskApplicationService;
+    
+    await taskService.changeTaskStatus(taskId, status as TaskStatusLiteral);
+    revalidatePath('/dashboard');
+    return {
+      success: true,
+      message: 'タスクステータスが更新されました'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'ステータスの更新に失敗しました'
+    };
+  }
 }
 
-export async function deleteTaskAction(taskId: string) {
-  const container = await createDependencyContainer();
-  const taskService = container.taskApplicationService;
-  
-  await taskService.deleteTask(taskId);
-  revalidatePath('/dashboard');
+export async function deleteTaskAction(prevState: ActionState | null, taskId: string): Promise<ActionState> {
+  try {
+    const container = await createDependencyContainer();
+    const taskService = container.taskApplicationService;
+    
+    await taskService.deleteTask(taskId);
+    revalidatePath('/dashboard');
+    return {
+      success: true,
+      message: 'タスクが削除されました'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'タスクの削除に失敗しました'
+    };
+  }
 }
 
-export async function moveTaskAction(taskId: string, newListId: string) {
-  const container = await createDependencyContainer();
-  const taskService = container.taskApplicationService;
-  
-  await taskService.moveTaskToList(taskId, newListId);
-  revalidatePath('/dashboard');
+export async function moveTaskAction(prevState: ActionState | null, taskId: string, newListId: string): Promise<ActionState> {
+  try {
+    const container = await createDependencyContainer();
+    const taskService = container.taskApplicationService;
+    
+    await taskService.moveTaskToList(taskId, newListId);
+    revalidatePath('/dashboard');
+    return {
+      success: true,
+      message: 'タスクが移動されました'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'タスクの移動に失敗しました'
+    };
+  }
 }
 
-export async function updateTaskAction(taskId: string, formData: FormData) {
-  const container = await createDependencyContainer();
-  const taskService = container.taskApplicationService;
-  
-  const result = await taskService.updateTask(taskId, {
-    title: formData.get('title') as string,
-    description: formData.get('description') as string,
-    dueDate: formData.get('dueDate') as string,
-  });
-  
-  revalidatePath('/dashboard');
-  return result;
+export async function updateTaskAction(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
+  try {
+    const container = await createDependencyContainer();
+    const taskService = container.taskApplicationService;
+    
+    const taskId = formData.get('taskId') as string;
+    
+    await taskService.updateTask(taskId, {
+      title: formData.get('title') as string,
+      description: formData.get('description') as string,
+      dueDate: formData.get('dueDate') as string,
+    });
+    
+    revalidatePath('/dashboard');
+    return {
+      success: true,
+      message: 'タスクが正常に更新されました'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'タスクの更新に失敗しました'
+    };
+  }
 }
