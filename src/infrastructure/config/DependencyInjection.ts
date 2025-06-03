@@ -7,7 +7,32 @@ import { TaskListApplicationService } from '../../application/services/TaskListA
 import { TaskApplicationService } from '../../application/services/TaskApplicationService';
 import { InMemoryTaskListRepository } from '../adapters/output/persistence/InMemoryTaskListRepository';
 import { InMemoryTaskRepository } from '../adapters/output/persistence/InMemoryTaskRepository';
+import { PostgreSQLTaskRepository } from '../adapters/output/persistence/PostgreSQLTaskRepository';
+import { PostgreSQLTaskListRepository } from '../adapters/output/persistence/PostgreSQLTaskListRepository';
 import { SystemTimeProvider } from '../adapters/output/time/SystemTimeProvider';
+import { createDatabasePool } from './DatabaseConfig';
+
+/**
+ * 環境変数に基づいてリポジトリを作成する関数
+ * USE_POSTGRESQL=trueの場合はPostgreSQLアダプターを使用
+ * それ以外の場合はインメモリリポジトリを使用（デフォルト）
+ */
+export const createRepositories = () => {
+  const usePostgreSQL = process.env.USE_POSTGRESQL === 'true';
+  
+  if (usePostgreSQL) {
+    const pool = createDatabasePool();
+    return {
+      taskRepository: new PostgreSQLTaskRepository(pool),
+      taskListRepository: new PostgreSQLTaskListRepository(pool),
+    };
+  } else {
+    return {
+      taskRepository: new InMemoryTaskRepository(),
+      taskListRepository: new InMemoryTaskListRepository(),
+    };
+  }
+};
 
 export class DependencyContainer {
   private taskListRepository: TaskListRepositoryPort;
@@ -17,9 +42,10 @@ export class DependencyContainer {
   private taskService: TaskManagementPort;
 
   public constructor() {
-    // リポジトリとプロバイダーの初期化
-    this.taskListRepository = new InMemoryTaskListRepository();
-    this.taskRepository = new InMemoryTaskRepository();
+    // 環境変数に基づいてリポジトリを作成
+    const repositories = createRepositories();
+    this.taskListRepository = repositories.taskListRepository;
+    this.taskRepository = repositories.taskRepository;
     this.timeProvider = new SystemTimeProvider();
     
     // サービスの初期化
@@ -92,7 +118,7 @@ export class DependencyContainerFactory {
       const list3 = await taskListService.createTaskList({ name: '買い物' });
 
       // テストタスクを作成
-      const task1 = await taskService.createTask({
+      await taskService.createTask({
         title: 'プロジェクト企画書作成',
         description: '新しいプロジェクトの企画書を作成する',
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -106,7 +132,7 @@ export class DependencyContainerFactory {
         listId: list1.id,
       });
 
-      const task3 = await taskService.createTask({
+      await taskService.createTask({
         title: '牛乳を買う',
         description: '',
         dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),

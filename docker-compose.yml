@@ -36,6 +36,7 @@ services:
       - "54320:5432" # ホストOSから54320ポートでアクセス可能にする
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
   pgdata:
