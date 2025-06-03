@@ -22,14 +22,14 @@ export function TaskList({ tasks, selectedListId, filter }: TaskListProps) {
 
   return (
     <div className="flex-1 p-6">
-      <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <header className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-          <h1 className="text-xl font-semibold text-gray-900">{getTitle()}</h1>
+      <section className="surface-1 rounded-lg border border-divider overflow-hidden">
+        <header className="px-6 py-4 border-b border-divider surface-2">
+          <h1 className="text-xl font-semibold text-foreground">{getTitle()}</h1>
         </header>
         
         {tasks.length === 0 ? (
           <div className="text-center py-12 px-6">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {filter
                 ? `${getTitle()}がありません`
                 : 'タスクがありません。新しいタスクを作成してください。'
@@ -37,7 +37,7 @@ export function TaskList({ tasks, selectedListId, filter }: TaskListProps) {
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-border">
             {tasks.map((task) => (
               <TaskItem key={task.id} task={task} />
             ))}

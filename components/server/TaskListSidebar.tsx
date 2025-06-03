@@ -10,7 +10,7 @@ interface TaskListSidebarProps {
 
 export function TaskListSidebar({ taskLists, selectedListId }: TaskListSidebarProps) {
   return (
-    <aside className="w-64 bg-gray-50 border-r border-gray-200">
+    <aside className="w-64 surface-2 border-r border-divider">
       <section className="p-4 accent-left">
         <h2 className="text-subheading mb-4">タスクリスト</h2>
         <div className="space-y-2">
@@ -37,7 +37,7 @@ export function TaskListSidebar({ taskLists, selectedListId }: TaskListSidebarPr
         </div>
       </section>
 
-      <section className="p-4 border-t border-gray-200 accent-left">
+      <section className="p-4 border-t border-divider accent-left">
         <h2 className="text-subheading mb-4">フィルター</h2>
         <div className="space-y-2">
           <Link href="/dashboard" className="block">
