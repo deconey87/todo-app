@@ -20,9 +20,10 @@
 - **変換処理統一**: TaskStatusConverter（型変換一元化）
 
 ### インフラストラクチャ層パターン
-- **アダプター**: InMemoryRepository, SystemTimeProvider
-- **ファクトリー**: DependencyInjection（オブジェクト生成管理）
+- **アダプター**: InMemoryRepository（テスト用）, PostgreSQLRepository（本番用）, SystemTimeProvider
+- **ファクトリー**: DependencyInjection（オブジェクト生成管理、環境別実装選択）
 - **依存性注入**: コンストラクタインジェクション
+- **データ永続化**: PostgreSQL統合完了（Phase1）
 
 ## UIデザインパターン（2025/6/2確立）
 
@@ -129,8 +130,9 @@ class PostgreSQLTaskRepository implements TaskRepositoryPort {
 - **正規化**: 適切な正規化レベル（第3正規形）
 - **インデックス戦略**: クエリパフォーマンス最適化
 
-### 接続管理パターン
+### 接続管理パターン（実装完了）
 - **接続プール**: pg.Poolによる効率的リソース管理
 - **設定管理**: 環境別接続設定（開発・テスト・本番）
-- **ヘルスチェック**: データベース接続状態監視
+- **実装切り替え**: 環境変数による動的選択（PostgreSQL/インメモリ）
 - **エラーハンドリング**: 接続エラー・タイムアウト対応
+- **テスト保護**: インメモリ実装保持によるテスト高速化
