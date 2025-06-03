@@ -92,3 +92,45 @@
 ### UI統合時の指針
 - 既存Server Actionsの活用、確立されたデザインパターンの適用
 - セマンティックHTML + ミニマルデザインの継続
+
+## PostgreSQL統合アーキテクチャパターン（2025/6/3策定完了）
+
+### ヘキサゴナルアーキテクチャ統合方針
+- **既存ポート維持**: [`TaskRepositoryPort`](src/application/ports/output/TaskRepositoryPort.ts)・[`TaskListRepositoryPort`](src/application/ports/output/TaskListRepositoryPort.ts)完全継承
+- **アダプター追加**: PostgreSQLアダプターを既存インメモリアダプターと並行実装
+- **依存性注入拡張**: [`DependencyInjection.ts`](src/infrastructure/config/DependencyInjection.ts)による実装切り替え
+- **境界保持**: ドメイン層の完全独立性維持
+
+### PostgreSQLアダプターパターン
+```typescript
+// 既存ポートインターフェース完全準拠
+class PostgreSQLTaskRepository implements TaskRepositoryPort {
+  // pq (node-postgres)による実装
+  // 既存メソッドシグネチャ完全継承
+  // トランザクション管理統合
+}
+```
+
+### トランザクション管理パターン
+- **集約境界基準**: Task・TaskList集約の独立トランザクション
+- **アプリケーションサービス制御**: トランザクション境界をアプリケーション層で管理
+- **エラー処理統一**: 既存ApplicationErrorとの統合
+- **ロールバック戦略**: 部分失敗時の安全な復旧
+
+### 段階的移行パターン
+- **並行稼働**: インメモリ・PostgreSQL両実装の同時サポート
+- **設定切り替え**: 環境変数による実装選択
+- **テスト保護**: 143個テスト100%通過維持
+- **段階的置換**: 機能単位での安全な移行
+
+### データベース設計パターン
+- **ドメインモデル直接反映**: Task・TaskListテーブル設計
+- **制約実装**: ドメイン不変条件のDB制約化
+- **正規化**: 適切な正規化レベル（第3正規形）
+- **インデックス戦略**: クエリパフォーマンス最適化
+
+### 接続管理パターン
+- **接続プール**: pg.Poolによる効率的リソース管理
+- **設定管理**: 環境別接続設定（開発・テスト・本番）
+- **ヘルスチェック**: データベース接続状態監視
+- **エラーハンドリング**: 接続エラー・タイムアウト対応
