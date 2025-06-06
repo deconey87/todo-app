@@ -15,21 +15,23 @@
 - ✅ **タスクリスト削除UI**: [`TaskListDeleteButton`](components/client/TaskListDeleteButton.tsx)で[`deleteTaskListAction`](app/actions/task-list-actions.ts:18)統合
 - ✅ **タスク移動UI**: [`TaskMoveSelect`](components/client/TaskMoveSelect.tsx)で[`moveTaskAction`](app/actions/task-actions.ts:30)統合
 
-### 新規実装コンポーネント（7つ）
-1. **Client Components（6つ）**:
+### 新規実装コンポーネント（8つ）
+1. **Client Components（7つ）**:
    - [`TaskFormModal`](components/client/TaskFormModal.tsx) - タスク作成
    - [`TaskEditModal`](components/client/TaskEditModal.tsx) - タスク編集
    - [`TaskDeleteButton`](components/client/TaskDeleteButton.tsx) - タスク削除
    - [`TaskListFormModal`](components/client/TaskListFormModal.tsx) - タスクリスト作成
+   - [`TaskListEditModal`](components/client/TaskListEditModal.tsx) - タスクリスト名変更（2025/6/6追加）
    - [`TaskListDeleteButton`](components/client/TaskListDeleteButton.tsx) - タスクリスト削除
    - [`TaskMoveSelect`](components/client/TaskMoveSelect.tsx) - タスク移動
 
 2. **Server Components（1つ）**:
    - [`DashboardHeader`](components/server/DashboardHeader.tsx) - ダッシュボードヘッダー
 
-### 新規実装Server Actions（2つ）
+### 新規実装Server Actions（3つ）
 - [`updateTaskAction`](app/actions/task-actions.ts) - タスク編集機能
 - [`deleteTaskAction`](app/actions/task-actions.ts) - タスク削除機能
+- [`updateTaskListAction`](app/actions/task-list-actions.ts) - タスクリスト名変更機能（2025/6/6追加）
 
 ## 実装状況の詳細
 ### バックエンド層（95%完了 - 高品質）
@@ -63,12 +65,12 @@
 - **段階的実装**: Phase別の現実的な開発計画
 - **品質維持**: バックエンド品質を保持しながらの機能追加
 
-## 次のステップ（Phase 2以降）
+## 次のステップ（Phase 2進行中）
 ### Phase 2: 高度な機能統合（中優先度）
-1. **ドラッグ&ドロップ機能**: より直感的なタスク移動
+1. ✅ **タスクリスト名変更**: より柔軟なリスト管理（2025/6/6完了）
 2. **期日ソート機能**: タスクの効率的な管理
-3. **タスクリスト名変更**: より柔軟なリスト管理
-4. **詳細なエラーハンドリング**: 包括的エラー対応
+3. **詳細なエラーハンドリング**: 包括的エラー対応
+4. **ドラッグ&ドロップ機能**: より直感的なタスク移動
 
 ### Phase 3: 最適化・拡張（低優先度）
 1. **パフォーマンス最適化**: レンダリング最適化
@@ -93,7 +95,7 @@
 - **リアルタイム更新**: Server Actions実行後の即座な画面反映
 
 ## 現在のフォーカス
-**PostgreSQL統合Phase1完了**。データ永続化が実現され、本格的なデータベース統合が完了。インメモリ実装はテスト用途で保持し、143個テストの完全保護を維持。次のフェーズでは高度な機能統合とパフォーマンス最適化に注力。
+**PostgreSQL統合Phase1完了 + タスクリスト名変更機能完了**（2025/6/6）。データ永続化が実現され、基本CRUD操作がすべて完成。インメモリ実装はテスト用途で保持し、143個テストの完全保護を維持。Phase 2の残り機能（期日ソート、エラーハンドリング、ドラッグ&ドロップ）に注力。
 
 ## PostgreSQL統合の重要な決定事項（2025/6/3完了）
 ### 技術選択：pq (node-postgres)

@@ -4,6 +4,7 @@ import { TaskListDto } from '../../src/application/dto/TaskListDto';
 import { TASK_STATUS_VALUES, TaskStatusConverter } from '../../src/shared/types/TaskStatus';
 import { TaskListFormModal } from '../client/TaskListFormModal';
 import { TaskListDeleteButton } from '../client/TaskListDeleteButton';
+import { TaskListEditModal } from '../client/TaskListEditModal';
 
 interface TaskListSidebarProps {
   taskLists: TaskListDto[];
@@ -19,7 +20,7 @@ export function TaskListSidebar({ taskLists, selectedListId }: TaskListSidebarPr
         </div>
         <div className="space-y-2">
           {taskLists.map((list) => (
-            <div key={list.id} className="flex items-center gap-2">
+            <div key={list.id} className="flex items-center gap-1">
               <Link
                 href={`/dashboard?list=${list.id}`}
                 className="flex-1"
@@ -31,6 +32,10 @@ export function TaskListSidebar({ taskLists, selectedListId }: TaskListSidebarPr
                   {list.name}
                 </Button>
               </Link>
+              <TaskListEditModal
+                listId={list.id}
+                currentName={list.name}
+              />
               <TaskListDeleteButton
                 listId={list.id}
                 listName={list.name}

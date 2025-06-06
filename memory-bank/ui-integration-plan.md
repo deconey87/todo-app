@@ -44,11 +44,11 @@ graph TD
 - ✅ **タスクリスト削除UI**: [`TaskListDeleteButton`](components/client/TaskListDeleteButton.tsx)で[`deleteTaskListAction`](app/actions/task-list-actions.ts:18)統合
 - ✅ **タスク移動UI**: [`TaskMoveSelect`](components/client/TaskMoveSelect.tsx)で[`moveTaskAction`](app/actions/task-actions.ts:30)統合
 
-### 残存機能（Phase 2以降）
-- ❌ **タスクリスト名変更**: Server Action・UI共に未実装
-- ❌ **ドラッグ&ドロップ**: 高度なインタラクション機能
+### 残存機能（Phase 2進行中）
+- ✅ **タスクリスト名変更**: Server Action + UI実装完了（2025/6/6）
 - ❌ **期日ソート機能**: URLパラメータ + UI実装
 - ❌ **詳細なエラーハンドリング**: 包括的エラー対応
+- ❌ **ドラッグ&ドロップ**: 高度なインタラクション機能
 
 ### 既存資産の活用方針
 - **高品質バックエンド**: DDD原則準拠、143テスト100%通過の実装を維持
@@ -368,13 +368,13 @@ graph LR
 | UC011: タスクリスト一覧 | ✅ 実装済み | - | ✅ 実装済み | [`TaskListSidebar`](components/server/TaskListSidebar.tsx) |
 | UC012: リスト内タスク追加 | ✅ 実装済み | ✅ [`createTaskAction`](app/actions/task-actions.ts:7) | ✅ 実装済み | [`TaskFormModal`](components/client/TaskFormModal.tsx) |
 | UC013: リスト内タスク表示 | ✅ 実装済み | - | ✅ 実装済み | [`TaskList`](components/server/TaskList.tsx) |
-| UC014: リスト名変更 | ❌ 未実装 | ❌ 未実装 | ❌ 未実装 | TaskListFormModal |
+| UC014: リスト名変更 | ✅ 実装済み | ✅ [`updateTaskListAction`](app/actions/task-list-actions.ts) | ✅ 実装済み | [`TaskListEditModal`](components/client/TaskListEditModal.tsx) |
 | UC015: リスト削除 | ✅ 実装済み | ✅ [`deleteTaskListAction`](app/actions/task-list-actions.ts:18) | ✅ 実装済み | [`TaskListDeleteButton`](components/client/TaskListDeleteButton.tsx) |
 | UC016: タスク移動 | ✅ 実装済み | ✅ [`moveTaskAction`](app/actions/task-actions.ts:30) | ✅ 実装済み | [`TaskMoveSelect`](components/client/TaskMoveSelect.tsx) |
 
-### 実装状況サマリー（更新）
-- ✅ **完全実装**: 13機能（81%） - Phase 0・Phase 1完了
-- ❌ **未実装**: 3機能（19%） - Phase 2以降対象
+### 実装状況サマリー（更新 2025/6/6）
+- ✅ **完全実装**: 14機能（88%） - Phase 0・Phase 1完了 + タスクリスト名変更完了
+- ❌ **未実装**: 2機能（12%） - Phase 2進行中
 
 ## 14. 実装フェーズ（完了状況反映）
 
@@ -435,18 +435,19 @@ graph LR
 
 ## 16. 完了成果と次のステップ
 
-### 完了成果（2025/6/3）✅
+### 完了成果（2025/6/6更新）✅
 1. ✅ **メインページ実装**: [`app/page.tsx`](app/page.tsx)をダッシュボードリダイレクトに変更
 2. ✅ **タスク作成UI**: [`TaskFormModal`](components/client/TaskFormModal.tsx) + [`createTaskAction`](app/actions/task-actions.ts:7)統合
 3. ✅ **タスクリスト作成UI**: [`TaskListFormModal`](components/client/TaskListFormModal.tsx) + [`createTaskListAction`](app/actions/task-list-actions.ts:6)統合
 4. ✅ **タスク編集・削除**: [`TaskEditModal`](components/client/TaskEditModal.tsx)・[`TaskDeleteButton`](components/client/TaskDeleteButton.tsx) + 新規Server Actions実装
-5. ✅ **完全なCRUD操作**: 作成・読み取り・更新・削除すべて動作確認済み
+5. ✅ **タスクリスト名変更**: [`TaskListEditModal`](components/client/TaskListEditModal.tsx) + [`updateTaskListAction`](app/actions/task-list-actions.ts)実装（2025/6/6）
+6. ✅ **完全なCRUD操作**: 作成・読み取り・更新・削除すべて動作確認済み
 
-### Phase 2: 高度な機能統合（次のステップ）
-1. **ドラッグ&ドロップ機能**: より直感的なタスク移動
+### Phase 2: 高度な機能統合（進行中）
+1. ✅ **タスクリスト名変更**: より柔軟なリスト管理（2025/6/6完了）
 2. **期日ソート機能**: タスクの効率的な管理
-3. **タスクリスト名変更**: より柔軟なリスト管理
-4. **詳細なエラーハンドリング**: 包括的エラー対応
+3. **詳細なエラーハンドリング**: 包括的エラー対応
+4. **ドラッグ&ドロップ機能**: より直感的なタスク移動
 
 ### Phase 3: 最適化・拡張（長期目標）
 1. **パフォーマンス最適化**: レンダリング最適化
