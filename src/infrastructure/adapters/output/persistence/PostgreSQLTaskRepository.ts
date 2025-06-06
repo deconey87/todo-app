@@ -195,7 +195,8 @@ export class PostgreSQLTaskRepository implements TaskRepositoryPort {
       const taskId = TaskId.create(record.id);
       const title = new Title(record.title);
       const description = new Description(record.description);
-      const dueDate = record.due_date ? DueDate.create(record.due_date) : null;
+      // 期日の処理：データベースから取得した過去日付も許可（既存データ保護）
+      const dueDate = record.due_date ? DueDate.create(record.due_date, new Date('1900-01-01')) : null;
       
       // ステータスの変換処理
       if (!isValidTaskStatus(record.status)) {
